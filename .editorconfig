@@ -1,0 +1,230 @@
+[*.{appxmanifest,asax,ascx,aspx,axaml,build,c,c++,c++m,cc,ccm,cginc,compute,cp,cpp,cppm,cs,cshtml,cu,cuh,cxx,cxxm,dtd,fs,fsi,fsscript,fsx,fx,fxh,h,hh,hlsl,hlsli,hlslinc,hpp,hxx,inc,inl,ino,ipp,ixx,master,ml,mli,mpp,mq4,mq5,mqh,mxx,nuspec,paml,razor,resw,resx,shader,skin,tpp,usf,ush,uxml,vb,xaml,xamlx,xoml,xsd}]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+[*.cs]
+insert_final_newline = true
+
+# Microsoft .NET properties
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async, file, required:suggestion
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
+
+dotnet_style_parentheses_in_arithmetic_binary_operators = never_if_unnecessary:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+
+# Formatting rules
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = flush_left
+
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+# Expression-bodied members
+csharp_style_expression_bodied_methods = true:suggestion
+csharp_style_expression_bodied_constructors = true:suggestion
+csharp_style_expression_bodied_operators = true:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_indexers = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+
+# Pattern matching
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+# Inlined variable declarations
+csharp_style_inlined_variable_declaration = true:suggestion
+
+# Expression-level preferences
+csharp_prefer_simple_default_expression = true:suggestion
+csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_pattern_local_over_anonymous_function = true:suggestion
+
+# Null-checking preferences
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+
+# Code block preferences
+csharp_prefer_braces = true:warning
+
+# Unused value preferences
+csharp_style_unused_value_expression_statement_preference = discard_variable:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+
+# Index and range preferences
+csharp_style_prefer_index_operator = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+
+# Miscellaneous preferences
+csharp_style_prefer_switch_expression = true:suggestion
+
+# Diagnostic settings
+dotnet_diagnostic.CA1001.severity = warning # Types that own disposable fields should be disposable
+dotnet_diagnostic.CA1009.severity = warning # Declare event handlers correctly
+dotnet_diagnostic.CA1016.severity = warning # Mark assemblies with AssemblyVersionAttribute
+dotnet_diagnostic.CA1033.severity = warning # Interface methods should be callable by child types
+dotnet_diagnostic.CA1049.severity = warning # Types that own native resources should be disposable
+dotnet_diagnostic.CA1060.severity = warning # Move P/Invokes to NativeMethods class
+dotnet_diagnostic.CA1061.severity = warning # Do not hide base class methods
+dotnet_diagnostic.CA1063.severity = warning # Implement IDisposable correctly
+dotnet_diagnostic.CA1065.severity = warning # Do not raise exceptions in unexpected locations
+dotnet_diagnostic.CA1301.severity = warning # Avoid duplicate accelerators
+dotnet_diagnostic.CA1400.severity = warning # P/Invoke entry points should exist
+dotnet_diagnostic.CA1401.severity = warning # P/Invokes should not be visible
+dotnet_diagnostic.CA1403.severity = warning # Auto layout types should not be COM visible
+dotnet_diagnostic.CA1404.severity = warning # Call GetLastError immediately after P/Invoke
+dotnet_diagnostic.CA1405.severity = warning # COM visible type base types should be COM visible
+dotnet_diagnostic.CA1410.severity = warning # COM registration methods should be matched
+dotnet_diagnostic.CA1415.severity = warning # Declare P/Invokes correctly
+dotnet_diagnostic.CA1821.severity = warning # Remove empty finalizers
+dotnet_diagnostic.CA1900.severity = warning # Value type fields should be portable
+dotnet_diagnostic.CA1901.severity = warning # P/Invoke declarations should be portable
+dotnet_diagnostic.CA2002.severity = warning # Do not lock on objects with weak identity
+dotnet_diagnostic.CA2100.severity = warning # Review SQL queries for security vulnerabilities
+dotnet_diagnostic.CA2101.severity = warning # Specify marshaling for P/Invoke string arguments
+dotnet_diagnostic.CA2108.severity = warning # Review declarative security on value types
+dotnet_diagnostic.CA2111.severity = warning # Pointers should not be visible
+dotnet_diagnostic.CA2112.severity = warning # Secured types should not expose fields
+dotnet_diagnostic.CA2114.severity = warning # Method security should be a superset of type
+dotnet_diagnostic.CA2116.severity = warning # APTCA methods should only call APTCA methods
+dotnet_diagnostic.CA2117.severity = warning # APTCA types should only extend APTCA base types
+dotnet_diagnostic.CA2122.severity = warning # Do not indirectly expose methods with link demands
+dotnet_diagnostic.CA2123.severity = warning # Override link demands should be identical to base
+dotnet_diagnostic.CA2124.severity = warning # Wrap vulnerable finally clauses in outer try
+dotnet_diagnostic.CA2126.severity = warning # Type link demands require inheritance demands
+dotnet_diagnostic.CA2131.severity = warning # Security critical types may not participate in type equivalence
+dotnet_diagnostic.CA2132.severity = warning # Default constructors must be at least as critical as base type default constructors
+dotnet_diagnostic.CA2133.severity = warning # Delegates must bind to methods with consistent transparency
+dotnet_diagnostic.CA2134.severity = warning # Methods must keep consistent transparency when overriding base methods
+dotnet_diagnostic.CA2137.severity = warning # Transparent methods must contain only verifiable IL
+dotnet_diagnostic.CA2138.severity = warning # Transparent methods must not call methods with the SuppressUnmanagedCodeSecurity attribute
+dotnet_diagnostic.CA2140.severity = warning # Transparent code must not reference security critical items
+dotnet_diagnostic.CA2141.severity = warning # Transparent methods must not satisfy LinkDemands
+dotnet_diagnostic.CA2146.severity = warning # Types must be at least as critical as their base types and interfaces
+dotnet_diagnostic.CA2147.severity = warning # Transparent methods may not use security asserts
+dotnet_diagnostic.CA2149.severity = warning # Transparent methods must not call into native code
+dotnet_diagnostic.CA2200.severity = warning # Rethrow to preserve stack details
+dotnet_diagnostic.CA2202.severity = warning # Do not dispose objects multiple times
+dotnet_diagnostic.CA2207.severity = warning # Initialize value type static fields inline
+dotnet_diagnostic.CA2212.severity = warning # Do not mark serviced components with WebMethod
+dotnet_diagnostic.CA2213.severity = warning # Disposable fields should be disposed
+dotnet_diagnostic.CA2214.severity = warning # Do not call overridable methods in constructors
+dotnet_diagnostic.CA2216.severity = warning # Disposable types should declare finalizer
+dotnet_diagnostic.CA2220.severity = warning # Finalizers should call base class finalizer
+dotnet_diagnostic.CA2229.severity = warning # Implement serialization constructors
+dotnet_diagnostic.CA2231.severity = warning # Overload operator equals on overriding ValueType.Equals
+dotnet_diagnostic.CA2232.severity = warning # Mark Windows Forms entry points with STAThread
+dotnet_diagnostic.CA2235.severity = warning # Mark all non-serializable fields
+dotnet_diagnostic.CA2236.severity = warning # Call base class methods on ISerializable types
+dotnet_diagnostic.CA2237.severity = warning # Mark ISerializable types with SerializableAttribute
+dotnet_diagnostic.CA2238.severity = warning # Implement serialization methods correctly
+dotnet_diagnostic.CA2240.severity = warning # Implement ISerializable correctly
+dotnet_diagnostic.CA2241.severity = warning # Provide correct arguments to formatting methods
+dotnet_diagnostic.CA2242.severity = warning # Test for NaN correctly
+
+# Unity-specific settings
+dotnet_diagnostic.UNT0001.severity = warning # Empty Unity message
+dotnet_diagnostic.UNT0002.severity = warning # Inefficient tag comparison
+dotnet_diagnostic.UNT0003.severity = warning # Usage of non-generic GameObject.FindObjectOfType
+dotnet_diagnostic.UNT0004.severity = warning # Time.fixedDeltaTime used in Update
+dotnet_diagnostic.UNT0005.severity = warning # Time.deltaTime used in FixedUpdate
+dotnet_diagnostic.UNT0006.severity = warning # Incorrect message signature
+dotnet_diagnostic.UNT0007.severity = warning # Null propagation on Unity objects
+dotnet_diagnostic.UNT0008.severity = warning # Null coalescing on Unity objects
+dotnet_diagnostic.UNT0009.severity = warning # Missing static constructor with InitializeOnLoad
+dotnet_diagnostic.UNT0010.severity = warning # Component instance creation in DrawGizmos
+dotnet_diagnostic.UNT0011.severity = warning # ScriptableObject instance creation in DrawGizmos
+dotnet_diagnostic.UNT0012.severity = warning # Unused coroutine return value
+dotnet_diagnostic.UNT0013.severity = warning # Invalid or redundant SerializeField attribute
+dotnet_diagnostic.UNT0014.severity = warning # GetComponent called with non-Component or non-Interface type
+dotnet_diagnostic.UNT0015.severity = warning # Incorrect method signature with InitializeOnLoadMethod
+dotnet_diagnostic.UNT0016.severity = warning # Unsafe way to get the method name
+dotnet_diagnostic.UNT0017.severity = warning # SetPixels invocation is slow
+dotnet_diagnostic.UNT0018.severity = warning # System.Linq.Enumerable extension method invocation is allocating memory
+dotnet_diagnostic.UNT0019.severity = warning # Unnecessary indirection call for GameObject.gameObject
+dotnet_diagnostic.UNT0020.severity = warning # MenuItem attribute used on non-static method
+
+# Unity serialization
+dotnet_diagnostic.CS0649.severity = none # Field is never assigned to, and will always have its default value
+dotnet_diagnostic.IDE0051.severity = none # Private member is unused
+
+# Unity performance
+dotnet_diagnostic.HAA0601.severity = warning # Value type to reference type conversion causing boxing allocation
+dotnet_diagnostic.HAA0602.severity = warning # Delegate on struct instance caused a boxing allocation
+dotnet_diagnostic.HAA0603.severity = warning # Delegate allocation from a method group
+
+# Settings to remove redundant lines
+csharp_remove_blank_lines_near_braces_in_declarations = true
+csharp_remove_blank_lines_near_braces_in_code = true
+csharp_blank_lines_around_single_line_field = 0
+csharp_blank_lines_around_single_line_property = 0
+csharp_blank_lines_around_single_line_method = 0
+csharp_blank_lines_around_single_line_auto_property = 0
+csharp_blank_lines_around_local_method = 0
+csharp_keep_blank_lines_in_declarations = 1
+csharp_keep_blank_lines_in_code = 1
+csharp_remove_blank_lines_near_braces_in_declarations = true
+csharp_remove_blank_lines_near_braces_in_code = true
+csharp_blank_lines_before_single_line_comment = 0
+
+# ReSharper properties
+resharper_autodetect_indent_settings = true
+resharper_braces_for_for = required
+resharper_braces_for_foreach = required
+resharper_braces_for_ifelse = required_for_multiline
+resharper_braces_redundant = false
+resharper_continuous_line_indent = none
+resharper_cpp_max_line_length = 153
+resharper_cpp_remove_blank_lines_near_braces_in_code = true
+resharper_cpp_space_after_keywords_in_control_flow_statements = false
+resharper_cpp_type_declaration_braces = end_of_line
+resharper_csharp_max_line_length = 104
+resharper_default_value_when_type_not_evident = default_expression
+resharper_formatter_off_tag = @formatter:off
+resharper_formatter_on_tag = @formatter:on
+resharper_formatter_tags_enabled = true
+resharper_for_simple_types = use_explicit_type
+resharper_indent_preprocessor_directives = do_not_change
+resharper_instance_members_qualify_declared_in =
+resharper_int_align_declaration_names = true
+resharper_keep_existing_declaration_block_arrangement = true
+resharper_keep_existing_embedded_block_arrangement = true
+resharper_keep_existing_enum_arrangement = true
+resharper_keep_existing_initializer_arrangement = false
+resharper_method_or_operator_body = expression_body
+resharper_parentheses_redundancy_style = remove
+resharper_simple_embedded_statement_style = on_single_line
+resharper_toplevel_function_definition_return_type_style = on_single_line
+resharper_use_indent_from_vs = false
+resharper_wrap_after_expression_lbrace = false
+resharper_wrap_before_expression_rbrace = false
+
+# ReSharper inspection severities
+resharper_razor_assembly_not_resolved_highlighting = warning
+resharper_web_config_module_not_resolved_highlighting = warning
+resharper_web_config_type_not_resolved_highlighting = warning
+resharper_web_config_wrong_module_highlighting = warning
