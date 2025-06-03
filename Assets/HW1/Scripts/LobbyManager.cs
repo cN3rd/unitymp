@@ -10,39 +10,90 @@ namespace HW1.Scripts
 {
     public class LobbyManager : MonoBehaviour, INetworkRunnerCallbacks
     {
-        [SerializeField] private NetworkRunner runner;
+        [SerializeField] private NetworkRunner runnerPrefab;
+
+        private NetworkRunner lobbyRunner;
+        private NetworkRunner sessionRunner;
+        
+        [Header("Top view GUI")]
         [SerializeField] private TMP_Dropdown lobbyDropdown;
         [SerializeField] private Button joinLobbyButton;
         [SerializeField] private Button newRoomButton;
-        [SerializeField] private ErrorPopup errorPopup;
-        [SerializeField] private CreateRoomPopup createRoomPopup;
+        
+        [Header("List view")]
+        [SerializeField] private RectTransform listPanel;
+        [SerializeField] private GameObject listItemTemplate;
         [SerializeField] private TextMeshProUGUI noLobbySelectedText;
         [SerializeField] private TextMeshProUGUI noRoomsText;
+        
+        [Header("Popups")]
+        [SerializeField] private ErrorPopup errorPopup;
+        [SerializeField] private CreateRoomPopup createRoomPopup;
 
         private bool _canEnableJoinLobbyButton = true;
         private List<SessionInfo> _sessions = new List<SessionInfo>();
+        private List<GameObject> _roomButtons = new List<GameObject>();
+
+        private string GetLobbyName(int option) => $"lobby{option}";
+
+        private string GetCurrentLobbyName() => GetLobbyName(lobbyDropdown.value);
 
         public void Start()
         {
-            runner.AddCallbacks(this);
             joinLobbyButton.onClick.AddListener(OnJoinLobbyClicked);
+            newRoomButton.onClick.AddListener(OnNewRoomButtonClicked);
             lobbyDropdown.onValueChanged.AddListener(OnLobbyDropdownValueChanged);
-            createRoomPopup.OnCreateRoom += OnCreateRoom;
+            createRoomPopup.OnCreateRoom += CreateRoom;
+            
             UpdateUIState();
         }
 
-        private async void OnCreateRoom(CreateRoomDetails details)
+        private void OnDestroy()
         {
-            var result = await runner.StartGame(new StartGameArgs()
-            {
-                CustomLobbyName = lobbyDropdown.options[lobbyDropdown.value].text
-            });
+            lobbyRunner?.RemoveCallbacks(this);
+            sessionRunner?.RemoveCallbacks(this);
+        }
 
-            if (!result.Ok)
+        private void OnNewRoomButtonClicked()
+        {
+            createRoomPopup.ShowPopup();
+        }
+
+        private async void CreateRoom(CreateRoomDetails details)
+        {
+            try
             {
-                errorPopup.ShowError(result.ErrorMessage);
-                Debug.LogError(result.ErrorMessage);
+                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                
+                sessionRunner = Instantiate(runnerPrefab);
+                
+                var result = await sessionRunner.StartGame(new StartGameArgs()
+                {
+                    GameMode = GameMode.Shared,
+                    SessionName = details.name,
+                    PlayerCount = details.numPlayers,
+                    CustomLobbyName = lobbyRunner?.LobbyInfo.IsValid == true ? lobbyRunner.LobbyInfo.Name : GetCurrentLobbyName()
+                });
+
+                if (!result.Ok)
+                {
+                    errorPopup.ShowError(result.ErrorMessage);
+                    Debug.LogError($"Failed to create room: {result.ErrorMessage}");
+                    
+                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                    sessionRunner = null;
+                }
+                else
+                {
+                    Debug.Log($"Successfully created room: {details.name}");
+                }
             }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception while creating room: {ex.Message}");
+                errorPopup.ShowError($"Failed to create room: {ex.Message}");
+            }
+            
             UpdateUIState();
         }
 
@@ -50,38 +101,152 @@ namespace HW1.Scripts
 
         private void UpdateUIState()
         {
-            // disable top-ui buttons
-            newRoomButton.interactable = runner.LobbyInfo.IsValid &&
-                                         runner.LobbyInfo.Name == $"lobby{lobbyDropdown.value}";
-            joinLobbyButton.interactable = _canEnableJoinLobbyButton && (!runner.LobbyInfo.IsValid ||
-                runner.LobbyInfo.Name !=
-                $"lobby{lobbyDropdown.value}");
+            bool isLobbyConnected = lobbyRunner?.LobbyInfo.IsValid == true;
+            bool isCurrentLobby = isLobbyConnected && lobbyRunner.LobbyInfo.Name == GetCurrentLobbyName();
+            bool isInSession = sessionRunner?.IsRunning == true;
 
-            // update lobby text
-            noLobbySelectedText.gameObject.SetActive(!runner.LobbyInfo.IsValid);
-            noRoomsText.gameObject.SetActive(runner.LobbyInfo.IsValid && (_sessions == null || _sessions.Count == 0));
+            newRoomButton.interactable = isCurrentLobby && !isInSession;
+            joinLobbyButton.interactable = _canEnableJoinLobbyButton && (lobbyRunner == null || !isCurrentLobby);
+
+            noLobbySelectedText.gameObject.SetActive(!isLobbyConnected);
+            noRoomsText.gameObject.SetActive(isLobbyConnected && (_sessions?.Count == 0));
             
-            // generate sessions button
+            foreach (var button in _roomButtons)
+            {
+                if (button) Destroy(button);
+            }
+            _roomButtons.Clear();
+
+            if (_sessions == null || !isLobbyConnected) return;
+            
+            foreach (var session in _sessions)
+            {
+                var sessionObject = Instantiate(listItemTemplate, listPanel);
+                sessionObject.SetActive(true);
+                
+                var buttonText = sessionObject.GetComponentInChildren<TextMeshProUGUI>();
+                var imageComponent = sessionObject.GetComponent<Image>();
+                var button = sessionObject.GetComponent<Button>();
+                
+                buttonText.text = $"{session.Name} ({session.PlayerCount}/{session.MaxPlayers})";
+
+                if (isInSession && session.Name == sessionRunner.SessionInfo?.Name)
+                {
+                    // If we're in a session, show disconnect option
+                    imageComponent.color = Color.green;
+                    button.onClick.AddListener(DisconnectSession);
+                    buttonText.text += " [DISCONNECT]";
+                }
+                else if (session.IsOpen && session.PlayerCount < session.MaxPlayers)
+                {
+                    // Session is joinable
+                    button.onClick.AddListener(() => JoinSession(session));
+                }
+                else
+                {
+                    // Session is full or closed
+                    button.interactable = false;
+                }
+
+                _roomButtons.Add(sessionObject);
+            }
+        }
+
+        private async void DisconnectSession()
+        {
+            try
+            {
+                if (sessionRunner != null)
+                {
+                    await sessionRunner.Shutdown(shutdownReason: ShutdownReason.Ok);
+                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                    sessionRunner = null;
+                }
+                UpdateUIState();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception while disconnecting session: {ex.Message}");
+            }
+        }
+
+        private async void JoinSession(SessionInfo session)
+        {
+            try
+            {
+                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                sessionRunner = Instantiate(runnerPrefab);
+                
+                var result = await sessionRunner.StartGame(new StartGameArgs()
+                {
+                    GameMode = GameMode.Shared,
+                    SessionName = session.Name,
+                    CustomLobbyName = lobbyRunner.LobbyInfo.Name
+                });
+
+                if (!result.Ok)
+                {
+                    errorPopup.ShowError(result.ErrorMessage);
+                    Debug.LogError($"Failed to join session: {result.ErrorMessage}");
+                    
+                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                    sessionRunner = null;
+                }
+                else
+                {
+                    Debug.Log($"Successfully joined session: {session.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception while joining session: {ex.Message}");
+                errorPopup.ShowError($"Failed to join session: {ex.Message}");
+            }
+            
+            UpdateUIState();
         }
 
         private async void OnJoinLobbyClicked()
         {
-            _canEnableJoinLobbyButton = false;
-            UpdateUIState();
-
-            var result =
-                await runner.JoinSessionLobby(SessionLobby.Custom, $"lobby{lobbyDropdown.value}");
-
-            _canEnableJoinLobbyButton = true;
-            UpdateUIState();
-
-            if (!result.Ok)
+            try
             {
-                errorPopup.ShowError(result.ErrorMessage);
-                Debug.LogError(result.ErrorMessage);
-            }
+                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
+                sessionRunner = null;
+                
+                if (lobbyRunner != null)
+                {
+                    lobbyRunner.RemoveCallbacks(this);
+                    if (lobbyRunner.gameObject) Destroy(lobbyRunner.gameObject);
+                }
+                
+                lobbyRunner = Instantiate(runnerPrefab);
+                lobbyRunner.AddCallbacks(this);
+                
+                _canEnableJoinLobbyButton = false;
+                UpdateUIState();
 
-            Debug.Log($"Joined Lobby \"{lobbyDropdown.options[lobbyDropdown.value].text}\"");
+                var result = await lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
+
+                _canEnableJoinLobbyButton = true;
+
+                if (!result.Ok)
+                {
+                    errorPopup.ShowError(result.ErrorMessage);
+                    Debug.LogError($"Failed to join lobby: {result.ErrorMessage}");
+                }
+                else
+                {
+                    Debug.Log($"Successfully joined lobby: {GetCurrentLobbyName()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _canEnableJoinLobbyButton = true;
+                Debug.LogError($"Exception while joining lobby: {ex.Message}");
+                errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
+            }
+            
+            UpdateUIState();
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
@@ -89,71 +254,48 @@ namespace HW1.Scripts
             Debug.Log($"Session list updated. Found {sessionList.Count} sessions.");
             foreach (var session in sessionList)
             {
-                Debug.Log($"Session Name: {session.Name}, Player Count: {session.PlayerCount}");
+                Debug.Log($"Session: {session.Name} - Players: {session.PlayerCount}/{session.MaxPlayers} - Open: {session.IsOpen}");
             }
+
+            _sessions = new List<SessionInfo>(sessionList);
+            UpdateUIState();
         }
 
         public void OnConnectedToServer(NetworkRunner runner)
         {
             Debug.Log("Connected to server.");
-            Debug.Log($"Is lobby valid: {runner.LobbyInfo.IsValid}");
-            Debug.Log($"Current lobby: {(runner.LobbyInfo.IsValid ? runner.LobbyInfo.Name : "None")}");
+            Debug.Log($"Lobby valid: {lobbyRunner?.LobbyInfo.IsValid}");
+            Debug.Log($"Current lobby: {(lobbyRunner?.LobbyInfo.IsValid == true ? lobbyRunner.LobbyInfo.Name : "None")}");
             UpdateUIState();
         }
 
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
         {
             Debug.Log($"Disconnected from server: {reason}");
+            
+            if (runner == lobbyRunner)
+            {
+                _sessions.Clear();
+            }
+            
             UpdateUIState();
         }
 
-
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
-
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
-
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
-
-        public void OnConnectRequest(NetworkRunner runner,
-            NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
-        {
-        }
-
-        public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress,
-            NetConnectFailedReason reason)
-        {
-        }
-
+        public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+        public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
         public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
-
-        public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key,
-            ArraySegment<byte> data)
-        {
-        }
-
-        public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key,
-            float progress)
-        {
-        }
-
+        public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
+        public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
         public void OnInput(NetworkRunner runner, NetworkInput input) { }
-
         public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-
-
-        public void OnCustomAuthenticationResponse(NetworkRunner runner,
-            Dictionary<string, object> data)
-        {
-        }
-
+        public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
         public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
-
         public void OnSceneLoadDone(NetworkRunner runner) { }
-
         public void OnSceneLoadStart(NetworkRunner runner) { }
     }
 }

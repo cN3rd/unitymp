@@ -17,8 +17,15 @@ namespace HW1.Scripts
         private void OnEnable() => createRoomButton.onClick.AddListener(CreateRoomButtonClicked);
         private void OnDisable() => createRoomButton.onClick.RemoveListener(CreateRoomButtonClicked);
 
-        public void ShowCreateRoom() => ShowPopup();
-        public void CreateRoomButtonClicked() {}
+        public new void ShowPopup() => base.ShowPopup();
+
+        public void CreateRoomButtonClicked()
+        {
+            var numPlayers = int.Parse(numberPlayersDropdown.options[numberPlayersDropdown.value].text);
+            var record = new CreateRoomDetails(roomNameInput.text, numPlayers);
+            HidePopup();
+            OnCreateRoom?.Invoke(record);
+        }
     }
 
     public record CreateRoomDetails(string name, int numPlayers);
