@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +14,7 @@ namespace HW1.Scripts
         private void OnDisable() => closeButton.onClick.RemoveListener(CloseButtonClicked);
 
         private void CloseButtonClicked() => HidePopup();
-        
+
         public void ShowError(string error)
         {
             ShowPopup();

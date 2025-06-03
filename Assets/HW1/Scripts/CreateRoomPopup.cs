@@ -12,17 +12,17 @@ namespace HW1.Scripts
         [SerializeField] private TMP_Dropdown numberPlayersDropdown;
         [SerializeField] private Button createRoomButton;
 
-        public event Action<CreateRoomDetails> OnCreateRoom ;
-        
         private void OnEnable() => createRoomButton.onClick.AddListener(CreateRoomButtonClicked);
         private void OnDisable() => createRoomButton.onClick.RemoveListener(CreateRoomButtonClicked);
+
+        public event Action<CreateRoomDetails> OnCreateRoom;
 
         public new void ShowPopup() => base.ShowPopup();
 
         public void CreateRoomButtonClicked()
         {
-            var numPlayers = int.Parse(numberPlayersDropdown.options[numberPlayersDropdown.value].text);
-            var record = new CreateRoomDetails(roomNameInput.text, numPlayers);
+            int numPlayers = int.Parse(numberPlayersDropdown.options[numberPlayersDropdown.value].text);
+            CreateRoomDetails record = new(roomNameInput.text, numPlayers);
             HidePopup();
             OnCreateRoom?.Invoke(record);
         }

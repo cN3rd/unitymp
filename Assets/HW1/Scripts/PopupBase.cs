@@ -13,7 +13,7 @@ namespace HW1.Scripts
             canvasGroup.blocksRaycasts = true;
             canvasGroup.alpha = 1;
         }
-        
+
         protected void HidePopup()
         {
             canvasGroup.interactable = false;
