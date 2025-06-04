@@ -5120,6 +5120,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1301523057}
   - component: {fileID: 1301523058}
+  - component: {fileID: 1301523059}
   m_Layer: 0
   m_Name: Fusion Stuff
   m_TagString: Untagged
@@ -5166,6 +5167,19 @@ MonoBehaviour:
   createRoomPopup: {fileID: 1424864839}
   playerListUI: {fileID: 1284285151}
   nameContainerPrefab: {fileID: 6944891918546473175, guid: b938c764e3915c94dabe75f124c6e095, type: 3}
+--- !u!114 &1301523059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301523055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fa23665024243d188549ba6dd1f6387, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usernameInputField: {fileID: 1735737027}
 --- !u!1 &1379421193
 GameObject:
   m_ObjectHideFlags: 0
@@ -5323,7 +5337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: -1
+  m_MinWidth: 150
   m_MinHeight: -1
   m_PreferredWidth: -1
   m_PreferredHeight: -1
