@@ -21,8 +21,7 @@ namespace HW1.Scripts
         [Header("List view")]
         [SerializeField] private RectTransform listPanel;
         [SerializeField] private GameObject listItemTemplate;
-        [SerializeField] private TextMeshProUGUI noLobbySelectedText;
-        [SerializeField] private TextMeshProUGUI noRoomsText;
+        [SerializeField] private TextMeshProUGUI statusText;
 
         [Header("Popups")]
         [SerializeField] private ErrorPopup errorPopup;
@@ -32,9 +31,13 @@ namespace HW1.Scripts
         [SerializeField] private PlayerListUI playerListUI;
         [SerializeField] private GameObject nameContainerPrefab;
         private readonly List<GameObject> _roomButtons = new();
+        
+        // state tracking
+        private bool _canEnableJoinLobbyButton = true;
+        private bool _isJoiningLobby;
+        private bool _isJoiningSession;
 
         // lobby things
-        private bool _canEnableJoinLobbyButton = true;
         private LobbyNetworkCallbackHandler _lobbyCallbackHandler;
         private NetworkRunner _lobbyRunner;
         private List<SessionInfo> _sessions = new();
@@ -151,6 +154,7 @@ namespace HW1.Scripts
             }
             catch (Exception ex)
             {
+                errorPopup.ShowError(ex.ToString());
                 // Force cleanup even if shutdown fails
                 CleanupSessionConnection();
                 UpdateUIState();
@@ -198,6 +202,7 @@ namespace HW1.Scripts
             try
             {
                 _canEnableJoinLobbyButton = false;
+                _isJoiningLobby = true;
                 UpdateUIState();
                 
                 CleanupSessionConnection();
@@ -206,6 +211,7 @@ namespace HW1.Scripts
                 StartGameResult result =
                     await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
 
+                _isJoiningLobby = false;
                 _canEnableJoinLobbyButton = true;
 
                 if (!result.Ok)
@@ -216,6 +222,7 @@ namespace HW1.Scripts
             }
             catch (Exception ex)
             {
+                _isJoiningLobby = false;
                 _canEnableJoinLobbyButton = true;
                 errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
                 CleanupLobbyConnection();
@@ -228,6 +235,7 @@ namespace HW1.Scripts
         {
             try
             {
+                _isJoiningSession = true;
                 CleanupSessionConnection();
                 CreateSessionRunner();
 
@@ -248,12 +256,14 @@ namespace HW1.Scripts
                     return;
                 }
 
-                _sessionRunner.Spawn(nameContainerPrefab);
+                await _sessionRunner.SpawnAsync(nameContainerPrefab);
+                _isJoiningSession = false;
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError($"Failed to create room: {ex.Message}");
                 CleanupSessionConnection();
+                _isJoiningSession = false;
             }
 
             UpdateUIState();
@@ -263,6 +273,7 @@ namespace HW1.Scripts
         {
             try
             {
+                _isJoiningSession = true;
                 // Clean up existing session
                 CleanupSessionConnection();
 
@@ -281,11 +292,13 @@ namespace HW1.Scripts
                     errorPopup.ShowError(result.ErrorMessage);
                     CleanupSessionConnection();
                 }
+                _isJoiningSession = false;
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError($"Failed to join session: {ex.Message}");
                 CleanupSessionConnection();
+                _isJoiningSession = false;
             }
 
             UpdateUIState();
@@ -326,8 +339,30 @@ namespace HW1.Scripts
 
         private void UpdateListTextUI(bool isLobbyConnected)
         {
-            noLobbySelectedText.gameObject.SetActive(!isLobbyConnected);
-            noRoomsText.gameObject.SetActive(isLobbyConnected && _sessions?.Count == 0);
+            if (_isJoiningLobby)
+            {
+                statusText.text = "Joining lobby...";
+                statusText.gameObject.SetActive(true);
+            }
+            else if (_isJoiningSession)
+            {
+                statusText.text = "Joining room...";
+                statusText.gameObject.SetActive(true);
+            }
+            else if (!isLobbyConnected)
+            {
+                statusText.text = "Select a lobby and click 'Join Lobby' to see available rooms";
+                statusText.gameObject.SetActive(true);
+            }
+            else if (_sessions.Count == 0)
+            {
+                statusText.text = "No rooms available. Click 'New Room' to create one.";
+                statusText.gameObject.SetActive(true);
+            }
+            else
+            {
+                statusText.gameObject.SetActive(false);
+            }
         }
 
         private void UpdateButtonStateUI(bool isCurrentLobby, bool isInSession)
@@ -346,7 +381,7 @@ namespace HW1.Scripts
             }
             _roomButtons.Clear();
 
-            if (_sessions == null || !isLobbyConnected) return;
+            if (!isLobbyConnected) return;
 
             foreach (SessionInfo session in _sessions)
             {
