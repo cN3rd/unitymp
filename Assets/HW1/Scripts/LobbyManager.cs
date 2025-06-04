@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Fusion.Sockets;
 using TMPro;
@@ -9,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HW1.Scripts
 {
-    public class LobbyManager : MonoBehaviour, INetworkRunnerCallbacks
+    public class LobbyManager : MonoBehaviour
     {
         [SerializeField] private NetworkRunner runnerPrefab;
 
@@ -28,172 +27,319 @@ namespace HW1.Scripts
         [Header("Popups")]
         [SerializeField] private ErrorPopup errorPopup;
         [SerializeField] private CreateRoomPopup createRoomPopup;
-        
+
         [Header("Name list")]
         [SerializeField] private PlayerListUI playerListUI;
         [SerializeField] private GameObject nameContainerPrefab;
+        private readonly List<GameObject> _roomButtons = new();
+
+        // lobby things
+        private bool _canEnableJoinLobbyButton = true;
+        private LobbyNetworkCallbackHandler _lobbyCallbackHandler;
+        private NetworkRunner _lobbyRunner;
+        private List<SessionInfo> _sessions = new();
+        
+        // network runner things
+        private SessionNetworkCallbackHandler _sessionCallbackHandler;
+        private NetworkRunner _sessionRunner;
+        private PlayerNameContainer _playerNameContainer;
 
         public static LobbyManager Instance { get; private set; }
-        
-        private bool _canEnableJoinLobbyButton = true;
-        private readonly List<GameObject> _roomButtons = new();
-        private List<SessionInfo> _sessions = new();
-
-        private NetworkRunner lobbyRunner;
-        private NetworkRunner sessionRunner;
-        private PlayerNameContainer playerNameContainer;
 
         public void Start()
         {
+            Instance = this;
+
             joinLobbyButton.onClick.AddListener(OnJoinLobbyClicked);
             newRoomButton.onClick.AddListener(OnNewRoomButtonClicked);
             lobbyDropdown.onValueChanged.AddListener(OnLobbyDropdownValueChanged);
             createRoomPopup.OnCreateRoom += CreateRoom;
-            
-            Instance = this;
+
             UpdateUIState();
         }
 
-        private void OnDestroy()
+        private void OnDestroy() => CleanupAllConnections();
+        
+        #region Creation Operations
+        
+        private void CreateLobbyRunner()
         {
-            lobbyRunner?.RemoveCallbacks(this);
-            sessionRunner?.RemoveCallbacks(this);
+            _lobbyRunner = Instantiate(runnerPrefab);
+            _lobbyCallbackHandler = new LobbyNetworkCallbackHandler(
+                HandleLobbySessionListUpdated,
+                HandleLobbyConnected,
+                HandleLobbyDisconnected
+            );
+            _lobbyRunner.AddCallbacks(_lobbyCallbackHandler);
+        }
+        
+        private void CreateSessionRunner()
+        {
+            _sessionRunner = Instantiate(runnerPrefab);
+            _sessionCallbackHandler = new SessionNetworkCallbackHandler(
+                HandleSessionConnected,
+                HandleSessionDisconnected,
+                HandleSessionPlayerJoined,
+                HandleSessionPlayerLeft
+            );
+            _sessionRunner.AddCallbacks(_sessionCallbackHandler);
         }
 
-        public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+        #endregion
+
+        #region Cleanup Operations
+        
+        private void CleanupAllConnections()
+        {
+            CleanupLobbyConnection();
+            CleanupSessionConnection();
+        }
+
+        private void CleanupLobbyConnection()
+        {
+            if (_lobbyRunner != null)
+            {
+                if (_lobbyCallbackHandler != null)
+                {
+                    _lobbyRunner.RemoveCallbacks(_lobbyCallbackHandler);
+                    _lobbyCallbackHandler = null;
+                }
+
+                if (_lobbyRunner.gameObject)
+                {
+                    Destroy(_lobbyRunner.gameObject);
+                }
+
+                _lobbyRunner = null;
+            }
+
+            // Clear session list when lobby is cleaned up
+            _sessions.Clear();
+        }
+        
+        private void CleanupSessionConnection()
+        {
+            if (_sessionRunner != null)
+            {
+                if (_sessionCallbackHandler != null)
+                {
+                    _sessionRunner.RemoveCallbacks(_sessionCallbackHandler);
+                    _sessionCallbackHandler = null;
+                }
+
+                if (_sessionRunner.gameObject)
+                {
+                    Destroy(_sessionRunner.gameObject);
+                }
+
+                _sessionRunner = null;
+            }
+
+            // Clear player name container reference
+            _playerNameContainer = null;
+        }
+        
+        private async void ShutdownSessionSafely()
+        {
+            try
+            {
+                if (_sessionRunner == null) return;
+
+                await _sessionRunner.Shutdown(shutdownReason: ShutdownReason.Ok);
+                CleanupSessionConnection();
+                UpdateUIState();
+            }
+            catch (Exception ex)
+            {
+                // Force cleanup even if shutdown fails
+                CleanupSessionConnection();
+                UpdateUIState();
+            }
+        }
+
+        #endregion
+
+        #region Lobby Network Event Handlers
+
+        private void HandleLobbySessionListUpdated(List<SessionInfo> sessionList)
         {
             _sessions = new List<SessionInfo>(sessionList);
             UpdateUIState();
         }
 
-        public void OnConnectedToServer(NetworkRunner runner) => UpdateUIState();
+        private void HandleLobbyConnected() => UpdateUIState();
 
-        public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+        private void HandleLobbyDisconnected(NetDisconnectReason reason)
         {
-            Debug.Log($"Disconnected from server: {reason}");
-
-            if (runner == lobbyRunner)
-                _sessions.Clear();
-
+            _sessions.Clear();
             UpdateUIState();
         }
 
-        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) => playerNameContainer.NotifyPlayerJoinRPC(playerNameInputField.text);
-        public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) => playerNameContainer.NotifyPlayerLeaveRPC();
+        #endregion
 
-        public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-        public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-        public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+        #region Session Network Event Handlers
 
-        public void OnConnectRequest(NetworkRunner runner,
-            NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+        private void HandleSessionConnected() => UpdateUIState();
 
-        public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress,
-            NetConnectFailedReason reason) { }
+        private void HandleSessionDisconnected(NetDisconnectReason reason) => UpdateUIState();
 
-        public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
+        private void HandleSessionPlayerJoined(PlayerRef player) =>
+            _playerNameContainer?.AddPlayer(playerNameInputField.text);
 
-        public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key,
-            ArraySegment<byte> data) { }
+        private void HandleSessionPlayerLeft(PlayerRef player) =>
+            _playerNameContainer?.RemovePlayer(player);
 
-        public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key,
-            float progress) { }
+        #endregion
 
-        public void OnInput(NetworkRunner runner, NetworkInput input) { }
-        public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+        #region Network Operations
 
-        public void OnCustomAuthenticationResponse(NetworkRunner runner,
-            Dictionary<string, object> data) { }
+        private async void OnJoinLobbyClicked()
+        {
+            try
+            {
+                _canEnableJoinLobbyButton = false;
+                UpdateUIState();
+                
+                CleanupSessionConnection();
+                CleanupLobbyConnection();
+                CreateLobbyRunner();
+                StartGameResult result =
+                    await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
 
-        public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
-        public void OnSceneLoadDone(NetworkRunner runner) { }
-        public void OnSceneLoadStart(NetworkRunner runner) { }
+                _canEnableJoinLobbyButton = true;
 
-        private string GetLobbyName(int option) => $"lobby{option}";
+                if (!result.Ok)
+                {
+                    errorPopup.ShowError(result.ErrorMessage);
+                    CleanupLobbyConnection();
+                }
+            }
+            catch (Exception ex)
+            {
+                _canEnableJoinLobbyButton = true;
+                errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
+                CleanupLobbyConnection();
+            }
 
-        private string GetCurrentLobbyName() => GetLobbyName(lobbyDropdown.value);
-
-        private void OnNewRoomButtonClicked() => createRoomPopup.ShowPopup();
+            UpdateUIState();
+        }
 
         private async void CreateRoom(CreateRoomDetails details)
         {
             try
             {
-                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                sessionRunner = Instantiate(runnerPrefab);
+                CleanupSessionConnection();
+                CreateSessionRunner();
 
-                StartGameResult result = await sessionRunner.StartGame(new StartGameArgs
+                StartGameResult result = await _sessionRunner.StartGame(new StartGameArgs
                 {
                     GameMode = GameMode.Shared,
                     SessionName = details.name,
                     PlayerCount = details.numPlayers,
-                    CustomLobbyName = lobbyRunner?.LobbyInfo.IsValid == true
-                        ? lobbyRunner.LobbyInfo.Name
+                    CustomLobbyName = _lobbyRunner?.LobbyInfo.IsValid == true
+                        ? _lobbyRunner.LobbyInfo.Name
                         : GetCurrentLobbyName()
                 });
 
-                // TODO
-                await sessionRunner.SpawnAsync(nameContainerPrefab);
-                
                 if (!result.Ok)
                 {
                     errorPopup.ShowError(result.ErrorMessage);
-                    Debug.LogError($"Failed to create room: {result.ErrorMessage}");
+                    CleanupSessionConnection();
+                    return;
+                }
 
-                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                    sessionRunner = null;
-                }
-                else
-                {
-                    Debug.Log($"Successfully created room: {details.name}");
-                }
+                _sessionRunner.Spawn(nameContainerPrefab);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Exception while creating room: {ex.Message}");
                 errorPopup.ShowError($"Failed to create room: {ex.Message}");
+                CleanupSessionConnection();
             }
 
             UpdateUIState();
         }
 
-        public void SetPlayerNameContainer(PlayerNameContainer pnc)
+        private async void JoinSession(SessionInfo session)
         {
-            playerNameContainer = pnc;
-            playerNameContainer.OnPlayerNamesChanged += playerListUI.RefreshPlayerList;
+            try
+            {
+                // Clean up existing session
+                CleanupSessionConnection();
+
+                // Create new session runner
+                CreateSessionRunner();
+
+                StartGameResult result = await _sessionRunner.StartGame(new StartGameArgs
+                {
+                    GameMode = GameMode.Shared,
+                    SessionName = session.Name,
+                    CustomLobbyName = _lobbyRunner.LobbyInfo.Name
+                });
+
+                if (!result.Ok)
+                {
+                    errorPopup.ShowError(result.ErrorMessage);
+                    CleanupSessionConnection();
+                }
+            }
+            catch (Exception ex)
+            {
+                errorPopup.ShowError($"Failed to join session: {ex.Message}");
+                CleanupSessionConnection();
+            }
+
+            UpdateUIState();
         }
+
+        private void DisconnectSession() => ShutdownSessionSafely();
+
+        #endregion
+
+        #region UI Event Handlers
+
+        private void OnNewRoomButtonClicked() => createRoomPopup.ShowPopup();
 
         private void OnLobbyDropdownValueChanged(int newValue) => UpdateUIState();
 
-        #region UI
+        public void SetPlayerNameContainer(PlayerNameContainer pnc)
+        {
+            _playerNameContainer = pnc;
+            _playerNameContainer.OnPlayerNamesChanged += playerListUI.RefreshPlayerList;
+        }
+
+        #endregion
+
+        #region UI Updates
+
         private void UpdateUIState()
         {
-            bool isLobbyConnected = lobbyRunner?.LobbyInfo.IsValid == true;
+            bool isLobbyConnected = _lobbyRunner?.LobbyInfo.IsValid == true;
             bool isCurrentLobby =
-                isLobbyConnected && lobbyRunner.LobbyInfo.Name == GetCurrentLobbyName();
+                isLobbyConnected && _lobbyRunner.LobbyInfo.Name == GetCurrentLobbyName();
 
-            bool isInSession = sessionRunner?.IsRunning == true;
+            bool isInSession = _sessionRunner?.IsRunning == true;
 
             UpdateButtonStateUI(isCurrentLobby, isInSession);
             UpdateListTextUI(isLobbyConnected);
             UpdateListUI(isLobbyConnected, isInSession);
         }
-        
+
         private void UpdateListTextUI(bool isLobbyConnected)
         {
             noLobbySelectedText.gameObject.SetActive(!isLobbyConnected);
             noRoomsText.gameObject.SetActive(isLobbyConnected && _sessions?.Count == 0);
         }
-        
+
         private void UpdateButtonStateUI(bool isCurrentLobby, bool isInSession)
         {
             newRoomButton.interactable = isCurrentLobby && !isInSession;
             joinLobbyButton.interactable =
-                _canEnableJoinLobbyButton && (lobbyRunner == null || !isCurrentLobby);
+                _canEnableJoinLobbyButton && (_lobbyRunner == null || !isCurrentLobby);
         }
 
         private void UpdateListUI(bool isLobbyConnected, bool isInSession)
         {
+            // Clear existing room buttons
             foreach (GameObject button in _roomButtons)
             {
                 if (button) Destroy(button);
@@ -219,125 +365,31 @@ namespace HW1.Scripts
 
             buttonText.text = $"{session.Name} ({session.PlayerCount}/{session.MaxPlayers})";
 
-            if (isInSession && session.Name == sessionRunner.SessionInfo?.Name)
+            if (isInSession && session.Name == _sessionRunner.SessionInfo?.Name)
             {
-                // If we're in a session, show disconnect option
                 imageComponent.color = Color.green;
                 button.onClick.AddListener(DisconnectSession);
                 buttonText.text += " [DISCONNECT]";
             }
             else if (session.IsOpen && session.PlayerCount < session.MaxPlayers)
             {
-                // Session is joinable
                 button.onClick.AddListener(() => JoinSession(session));
             }
             else
             {
-                // Session is full or closed
                 button.interactable = false;
             }
 
             _roomButtons.Add(sessionObject);
         }
+
         #endregion
-        
-        private async void DisconnectSession()
-        {
-            try
-            {
-                if (sessionRunner != null)
-                {
-                    await sessionRunner.Shutdown(shutdownReason: ShutdownReason.Ok);
-                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                    sessionRunner = null;
-                }
 
-                UpdateUIState();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Exception while disconnecting session: {ex.Message}");
-            }
-        }
+        #region Utility Methods
 
-        private async void JoinSession(SessionInfo session)
-        {
-            try
-            {
-                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                sessionRunner = Instantiate(runnerPrefab);
+        private string GetLobbyName(int option) => $"lobby{option}";
+        private string GetCurrentLobbyName() => GetLobbyName(lobbyDropdown.value);
 
-                StartGameResult result = await sessionRunner.StartGame(new StartGameArgs
-                {
-                    GameMode = GameMode.Shared,
-                    SessionName = session.Name,
-                    CustomLobbyName = lobbyRunner.LobbyInfo.Name
-                });
-
-                if (!result.Ok)
-                {
-                    errorPopup.ShowError(result.ErrorMessage);
-                    Debug.LogError($"Failed to join session: {result.ErrorMessage}");
-
-                    if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                    sessionRunner = null;
-                }
-                else
-                {
-                    Debug.Log($"Successfully joined session: {session.Name}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Exception while joining session: {ex.Message}");
-                errorPopup.ShowError($"Failed to join session: {ex.Message}");
-            }
-
-            UpdateUIState();
-        }
-
-        private async void OnJoinLobbyClicked()
-        {
-            try
-            {
-                if (sessionRunner?.gameObject) Destroy(sessionRunner.gameObject);
-                sessionRunner = null;
-
-                if (lobbyRunner != null)
-                {
-                    lobbyRunner.RemoveCallbacks(this);
-                    if (lobbyRunner.gameObject) Destroy(lobbyRunner.gameObject);
-                }
-
-                lobbyRunner = Instantiate(runnerPrefab);
-                lobbyRunner.AddCallbacks(this);
-
-                _canEnableJoinLobbyButton = false;
-                UpdateUIState();
-
-                StartGameResult result =
-                    await lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
-
-                _canEnableJoinLobbyButton = true;
-
-                if (!result.Ok)
-                {
-                    errorPopup.ShowError(result.ErrorMessage);
-                    Debug.LogError($"Failed to join lobby: {result.ErrorMessage}");
-                }
-                else
-                {
-                    Debug.Log($"Successfully joined lobby: {GetCurrentLobbyName()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _canEnableJoinLobbyButton = true;
-                Debug.LogError($"Exception while joining lobby: {ex.Message}");
-                errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
-            }
-
-            UpdateUIState();
-        }
+        #endregion
     }
 }
