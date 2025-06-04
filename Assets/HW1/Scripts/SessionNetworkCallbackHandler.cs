@@ -19,10 +19,10 @@ namespace HW1.Scripts
             Action<PlayerRef> onPlayerJoined,
             Action<PlayerRef> onPlayerLeft)
         {
-            this._onSessionConnected = onSessionConnected;
-            this._onSessionDisconnected = onSessionDisconnected;
-            this._onPlayerJoined = onPlayerJoined;
-            this._onPlayerLeft = onPlayerLeft;
+            _onSessionConnected = onSessionConnected;
+            _onSessionDisconnected = onSessionDisconnected;
+            _onPlayerJoined = onPlayerJoined;
+            _onPlayerLeft = onPlayerLeft;
         }
 
         public void OnConnectedToServer(NetworkRunner runner)

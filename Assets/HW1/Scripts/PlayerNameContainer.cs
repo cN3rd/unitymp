@@ -6,108 +6,60 @@ using UnityEngine;
 
 namespace HW1.Scripts
 {
-    public class PlayerNameContainer : NetworkBehaviour
+    public class PlayerNameContainer : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     {
-        // Local storage - not networked, no size limits
-        private readonly Dictionary<PlayerRef, string> localPlayerNames = new();
+        [Networked, Capacity(20), OnChangedRender(nameof(OnPlayerNameDictionaryChanged))]
+        private NetworkDictionary<PlayerRef, NetworkString<_32>> PlayerNames => default;
 
         public event Action<List<string>> OnPlayerNamesChanged;
 
-        private void UpdateUI()
-        {
-            var nameList = localPlayerNames.Values.ToList();
-            OnPlayerNamesChanged?.Invoke(nameList);
-        }
-
-        // RPC to sync player name to all clients
-        [Rpc(RpcSources.All, RpcTargets.All)]
-        public void SyncPlayerNameRPC(string playerName, RpcInfo info = default)
-        {
-            localPlayerNames[info.Source] = playerName;
-            Debug.Log($"Player {info.Source} set name to: {playerName}");
-            UpdateUI();
-        }
-
-        // RPC to remove player from all clients
-        [Rpc(RpcSources.All, RpcTargets.All)]
-        public void RemovePlayerNameRPC(RpcInfo info = default)
-        {
-            if (!localPlayerNames.Remove(info.Source)) return;
-            UpdateUI();
-        }
-
-        // RPC for late-joining players to request current state
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        public void RequestCurrentPlayersRPC(RpcInfo info = default)
+        private void AddPlayerRPC(string playerName, RpcInfo info = default)
         {
-            foreach (var kvp in localPlayerNames)
-            {
-                SyncPlayerNameToSingleClientRPC(kvp.Key, kvp.Value, info.Source);
-            }
+            if (!Object.HasStateAuthority) return;
+
+            PlayerNames.Set(info.Source, playerName);
         }
 
-        // RPC to send player name to a specific client
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void SyncPlayerNameToSingleClientRPC(PlayerRef playerRef, string playerName,
-            [RpcTarget] PlayerRef target)
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RemovePlayerRPC(PlayerRef playerToRemove)
         {
-            localPlayerNames[playerRef] = playerName;
-            UpdateUI();
+            if (!Object.HasStateAuthority) return;
+
+            PlayerNames.Remove(playerToRemove);
         }
 
-        // Public method to add a player (called locally)
-        public void AddPlayer(string playerName) =>
-            SyncPlayerNameRPC(playerName);
-
-        public void RemovePlayer(PlayerRef playerRef)
+        private void OnPlayerNameDictionaryChanged()
         {
-            if (Runner.LocalPlayer == playerRef || Object.HasStateAuthority)
-            {
-                RemovePlayerNameRPC();
-            }
+            var playerList = PlayerNames.Select(kvp => kvp.Value.ToString()).ToList();
+            OnPlayerNamesChanged?.Invoke(playerList);
         }
-
-        public List<string> GetPlayerNames() => localPlayerNames.Values.ToList();
-
-        public string GetPlayerName(PlayerRef playerRef) =>
-            localPlayerNames.TryGetValue(playerRef, out string name) ? name : string.Empty;
-
-        public Dictionary<PlayerRef, string> GetAllPlayerEntries() => new(localPlayerNames);
-
-        public bool HasPlayer(PlayerRef playerRef) => localPlayerNames.ContainsKey(playerRef);
-
-        public int GetPlayerCount() => localPlayerNames.Count;
 
         public override void Spawned()
         {
             LobbyManager.Instance.SetPlayerNameContainer(this);
-
-            if (Object.HasStateAuthority)
+            
+            string playerName = LobbyManager.Instance.GetCurrentPlayerName();
+            if (!string.IsNullOrEmpty(playerName))
             {
-                Debug.Log("PlayerNameContainer spawned as State Authority");
+                AddPlayerRPC(playerName);
             }
-            else
-            {
-                Debug.Log("PlayerNameContainer spawned as client - requesting current players");
-                RequestCurrentPlayersRPC();
-            }
+            
+            OnPlayerNameDictionaryChanged();
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
+        public void PlayerJoined(PlayerRef player)
         {
-            // Clean up when despawned
-            localPlayerNames.Clear();
-            OnPlayerNamesChanged?.Invoke(new List<string>());
+            if (player != Runner.LocalPlayer) return;
+
+            string playerName = LobbyManager.Instance.GetCurrentPlayerName();
+            if (string.IsNullOrEmpty(playerName)) return;
+
+            AddPlayerRPC(playerName);
         }
 
-        // Handle player disconnections
-        public void OnPlayerDisconnected(PlayerRef player)
-        {
-            if (localPlayerNames.Remove(player))
-            {
-                Debug.Log($"Removed disconnected player: {player}");
-                UpdateUI();
-            }
-        }
+        public void PlayerLeft(PlayerRef player) => RemovePlayerRPC(player);
+
+        public override void Despawned(NetworkRunner runner, bool hasState) => OnPlayerNamesChanged?.Invoke(new List<string>());
     }
 }

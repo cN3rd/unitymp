@@ -17,9 +17,9 @@ namespace HW1.Scripts
             Action onLobbyConnected,
             Action<NetDisconnectReason> onLobbyDisconnected)
         {
-            this._onSessionListUpdated = onSessionListUpdated;
-            this._onLobbyConnected = onLobbyConnected;
-            this._onLobbyDisconnected = onLobbyDisconnected;
+            _onSessionListUpdated = onSessionListUpdated;
+            _onLobbyConnected = onLobbyConnected;
+            _onLobbyDisconnected = onLobbyDisconnected;
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) =>

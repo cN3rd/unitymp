@@ -116,7 +116,6 @@ namespace HW1.Scripts
                 _lobbyRunner = null;
             }
 
-            // Clear session list when lobby is cleaned up
             _sessions.Clear();
         }
         
@@ -138,7 +137,6 @@ namespace HW1.Scripts
                 _sessionRunner = null;
             }
 
-            // Clear player name container reference
             _playerNameContainer = null;
         }
         
@@ -155,7 +153,6 @@ namespace HW1.Scripts
             catch (Exception ex)
             {
                 errorPopup.ShowError(ex.ToString());
-                // Force cleanup even if shutdown fails
                 CleanupSessionConnection();
                 UpdateUIState();
             }
@@ -187,11 +184,8 @@ namespace HW1.Scripts
 
         private void HandleSessionDisconnected(NetDisconnectReason reason) => UpdateUIState();
 
-        private void HandleSessionPlayerJoined(PlayerRef player) =>
-            _playerNameContainer?.AddPlayer(playerNameInputField.text);
-
-        private void HandleSessionPlayerLeft(PlayerRef player) =>
-            _playerNameContainer?.RemovePlayer(player);
+        private void HandleSessionPlayerJoined(PlayerRef player) { /* Intentionally empty */ }
+        private void HandleSessionPlayerLeft(PlayerRef player) { /* Intentionally empty */ }
 
         #endregion
 
@@ -274,10 +268,7 @@ namespace HW1.Scripts
             try
             {
                 _isJoiningSession = true;
-                // Clean up existing session
                 CleanupSessionConnection();
-
-                // Create new session runner
                 CreateSessionRunner();
 
                 StartGameResult result = await _sessionRunner.StartGame(new StartGameArgs
@@ -319,6 +310,8 @@ namespace HW1.Scripts
             _playerNameContainer = pnc;
             _playerNameContainer.OnPlayerNamesChanged += playerListUI.RefreshPlayerList;
         }
+
+        public string GetCurrentPlayerName() => playerNameInputField.text;
 
         #endregion
 
@@ -374,7 +367,6 @@ namespace HW1.Scripts
 
         private void UpdateListUI(bool isLobbyConnected, bool isInSession)
         {
-            // Clear existing room buttons
             foreach (GameObject button in _roomButtons)
             {
                 if (button) Destroy(button);
