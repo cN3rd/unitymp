@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
     public class FunUsernameSetter : MonoBehaviour
     {

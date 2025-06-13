@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
     public class SillyId
     {

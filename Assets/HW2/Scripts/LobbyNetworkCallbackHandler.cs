@@ -4,55 +4,44 @@ using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
-    public class SessionNetworkCallbackHandler : INetworkRunnerCallbacks
+    public class LobbyNetworkCallbackHandler : INetworkRunnerCallbacks
     {
-        private readonly Action<PlayerRef> _onPlayerJoined;
-        private readonly Action<PlayerRef> _onPlayerLeft;
-        private readonly Action _onSessionConnected;
-        private readonly Action<NetDisconnectReason> _onSessionDisconnected;
+        private readonly Action _onLobbyConnected;
+        private readonly Action<NetDisconnectReason> _onLobbyDisconnected;
+        private readonly Action<List<SessionInfo>> _onSessionListUpdated;
 
-        public SessionNetworkCallbackHandler(
-            Action onSessionConnected,
-            Action<NetDisconnectReason> onSessionDisconnected,
-            Action<PlayerRef> onPlayerJoined,
-            Action<PlayerRef> onPlayerLeft)
+        public LobbyNetworkCallbackHandler(
+            Action<List<SessionInfo>> onSessionListUpdated,
+            Action onLobbyConnected,
+            Action<NetDisconnectReason> onLobbyDisconnected)
         {
-            _onSessionConnected = onSessionConnected;
-            _onSessionDisconnected = onSessionDisconnected;
-            _onPlayerJoined = onPlayerJoined;
-            _onPlayerLeft = onPlayerLeft;
+            _onSessionListUpdated = onSessionListUpdated;
+            _onLobbyConnected = onLobbyConnected;
+            _onLobbyDisconnected = onLobbyDisconnected;
         }
+
+        public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) =>
+            _onSessionListUpdated?.Invoke(sessionList);
 
         public void OnConnectedToServer(NetworkRunner runner)
         {
-            Debug.Log("Connected to session server");
-            _onSessionConnected?.Invoke();
+            Debug.Log("Connected to lobby server");
+            _onLobbyConnected?.Invoke();
         }
 
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
         {
-            Debug.Log($"Disconnected from session server: {reason}");
-            _onSessionDisconnected?.Invoke(reason);
+            Debug.Log($"Disconnected from lobby server: {reason}");
+            _onLobbyDisconnected?.Invoke(reason);
         }
 
-        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-        {
-            Debug.Log($"Player joined session: {player}");
-            _onPlayerJoined?.Invoke(player);
-        }
+        // Lobby doesn't typically handle individual players joining/leaving
+        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
+        public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
 
-        public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
-        {
-            Debug.Log($"Player left session: {player}");
-            _onPlayerLeft?.Invoke(player);
-        }
-
-        // Sessions don't handle session list updates (that's lobby's job)
-        public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) { }
-
-        // Empty implementations for unused callbacks in session context
+        // Empty implementations for unused callbacks in lobby context
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }

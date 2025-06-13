@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
     public class ErrorPopup : PopupBase
     {

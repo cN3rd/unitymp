@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
     public class LobbyManager : MonoBehaviour
     {
@@ -61,8 +61,15 @@ namespace HW1.Scripts
             UpdateUIState();
         }
 
-        private void OnDestroy() => CleanupAllConnections();
-        
+        private void OnDestroy()
+        {
+            CleanupAllConnections();
+            if (_playerNameContainer)
+            {
+                _playerNameContainer.OnPlayerListChanged -= OnPlayerListChanged;
+            }
+        }
+
         #region Creation Operations
         
         private void CreateLobbyRunner()
@@ -308,7 +315,19 @@ namespace HW1.Scripts
         public void SetPlayerNameContainer(PlayerNameContainer pnc)
         {
             _playerNameContainer = pnc;
-            _playerNameContainer.OnPlayerNamesChanged += playerListUI.RefreshPlayerList;
+            _playerNameContainer.OnPlayerListChanged += OnPlayerListChanged;
+        }
+
+        private void OnPlayerListChanged(List<string> playerList)
+        {
+            playerListUI.RefreshPlayerList(playerList);
+            
+            // force players to transition to game scene
+            if (_sessionRunner.IsSharedModeMasterClient && _sessionRunner.SessionInfo.MaxPlayers ==
+                _sessionRunner.SessionInfo.PlayerCount)
+            {
+                _sessionRunner.LoadScene("GameScene", setActiveOnLoad: true);
+            }
         }
 
         public string GetCurrentPlayerName() => playerNameInputField.text;
