@@ -50,6 +50,10 @@ namespace HW2.Scripts
 
         public static LobbyManager Instance { get; private set; }
 
+        [Header("Dror Debugging SStuff")]
+        //public NetworkRunner SessionRunnerInstance => _sessionRunner; // For getting the option to use Spawn()
+        [SerializeField] CharacterSelectionManager characterSelectionManagerPrefab;
+
         public void Start()
         {
             Instance = this;
@@ -99,7 +103,7 @@ namespace HW2.Scripts
         #endregion
 
         #region Cleanup Operations
-        
+
         private void CleanupAllConnections()
         {
             CleanupLobbyConnection();
@@ -302,7 +306,12 @@ namespace HW2.Scripts
                     errorPopup.ShowError(result.ErrorMessage);
                     CleanupSessionConnection();
                 }
-                
+
+                //#region << Dror - Debugging Functionality >>
+                //CharacterSelectionManager characterSelectionManager = _sessionRunner.Spawn(characterSelectionManagerPrefab);
+                //characterSelectionManager.AssignNetwork(_sessionRunner);
+                //#endregion
+
                 _isJoiningSession = false;
             }
             catch (Exception ex)
