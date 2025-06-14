@@ -178,7 +178,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sessionRunner: {fileID: 1786886007}
   playerDataPrefab: {fileID: 8220138658691515704, guid: b26c577b073f17e46a82e8293b55e4cd, type: 3}
-  maxPlayers: 4
+  maxPlayers: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
