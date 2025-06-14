@@ -11,6 +11,7 @@ namespace HW2.Scripts
     public class LobbyManager : MonoBehaviour
     {
         [SerializeField] private NetworkRunner runnerPrefab;
+        [SerializeField] private GameObject playerDataPrefab;
 
         [Header("Top view GUI")]
         [SerializeField] private TMP_InputField playerNameInputField;
@@ -270,6 +271,17 @@ namespace HW2.Scripts
             UpdateUIState();
         }
 
+        private PlayerData SpawnPlayerData()
+        {
+            var playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
+            _sessionRunner.SetPlayerObject(_sessionRunner.LocalPlayer, playerDataObject);
+            
+            var playerData = playerDataObject.GetComponent<PlayerData>();
+            playerData.Nickname = playerNameInputField.text;
+            
+            return playerData;
+        }
+
         private async void JoinSession(SessionInfo session)
         {
             try
@@ -290,6 +302,7 @@ namespace HW2.Scripts
                     errorPopup.ShowError(result.ErrorMessage);
                     CleanupSessionConnection();
                 }
+                
                 _isJoiningSession = false;
             }
             catch (Exception ex)
@@ -316,21 +329,10 @@ namespace HW2.Scripts
         {
             _playerNameContainer = pnc;
             _playerNameContainer.OnPlayerListChanged += OnPlayerListChanged;
+            SpawnPlayerData();
         }
 
-        private void OnPlayerListChanged(List<string> playerList)
-        {
-            playerListUI.RefreshPlayerList(playerList);
-            
-            // force players to transition to game scene
-            if (_sessionRunner.IsSharedModeMasterClient && _sessionRunner.SessionInfo.MaxPlayers ==
-                _sessionRunner.SessionInfo.PlayerCount)
-            {
-                _sessionRunner.LoadScene("GameScene", setActiveOnLoad: true);
-            }
-        }
-
-        public string GetCurrentPlayerName() => playerNameInputField.text;
+        private void OnPlayerListChanged(List<string> playerList) => playerListUI.RefreshPlayerList(playerList);
 
         #endregion
 

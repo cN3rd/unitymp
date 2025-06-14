@@ -11,10 +11,26 @@ namespace HW2.Scripts
         [Networked, Capacity(20), OnChangedRender(nameof(OnPlayerDictionaryChanged))]
         private NetworkDictionary<PlayerRef, NetworkString<_32>> Players => default;
 
+        public static PlayerNameContainer Instance;
+        
+        private void Start()
+        {
+            if (Instance == null) Instance = this;
+        }
+
         public event Action<List<string>> OnPlayerListChanged;
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void AddPlayerRPC(string playerName, RpcInfo info = default)
+        public void NotifyPlayerNameChangeRPC(NetworkString<_32> newPlayerName,RpcInfo info = default)
+        {
+            Debug.Log($"Got change name request: {info.Source}, {newPlayerName}");
+            if (!Object.HasStateAuthority) return;
+
+            Players.Set(info.Source, newPlayerName);
+        }
+        
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void AddPlayerRPC(NetworkString<_32> playerName, RpcInfo info = default)
         {
             if (!Object.HasStateAuthority) return;
 
@@ -38,24 +54,14 @@ namespace HW2.Scripts
         public override void Spawned()
         {
             LobbyManager.Instance.SetPlayerNameContainer(this);
-            
-            string playerName = LobbyManager.Instance.GetCurrentPlayerName();
-            if (!string.IsNullOrEmpty(playerName))
-            {
-                AddPlayerRPC(playerName);
-            }
-            
-            OnPlayerDictionaryChanged();
+            PlayerJoined(Runner.LocalPlayer);
         }
 
         public void PlayerJoined(PlayerRef player)
         {
             if (player != Runner.LocalPlayer) return;
-
-            string playerName = LobbyManager.Instance.GetCurrentPlayerName();
-            if (string.IsNullOrEmpty(playerName)) return;
-
-            AddPlayerRPC(playerName);
+            AddPlayerRPC("unknown");
+            OnPlayerDictionaryChanged();
         }
 
         public void PlayerLeft(PlayerRef player) => RemovePlayerRPC(player);

@@ -10,7 +10,7 @@ namespace HW2.Scripts.Testing
     public class TestLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {
         [SerializeField] private NetworkRunner sessionRunner;
-        [SerializeField] private GameObject playerNameContainerPrefab;
+        [SerializeField] private GameObject playerDataPrefab;
         [Range(1,4),SerializeField] private int maxPlayers = 2;
 
         private int _playerNum;
@@ -61,6 +61,19 @@ namespace HW2.Scripts.Testing
                 PlayerCount = maxPlayers,
                 CustomLobbyName = "TestLobby",
             });
+            
+            await CreatePlayerDataObject();
+        }
+
+        private async Task CreatePlayerDataObject()
+        {
+            var playerDataObject = await sessionRunner.SpawnAsync(playerDataPrefab);
+            sessionRunner.SetPlayerObject(sessionRunner.LocalPlayer, playerDataObject);
+        
+            var playerData = playerDataObject.GetComponent<PlayerData>();
+            playerData.Nickname = SillyId.GenerateGamertag();
+            
+            Debug.Log($"Registered current player as \"{playerData.Nickname}\"");
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
