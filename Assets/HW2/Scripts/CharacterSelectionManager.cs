@@ -15,7 +15,8 @@ namespace HW2.Scripts
 
         private readonly HashSet<Color> _takenCharactersColor = new();
         private NetworkRunner _runnerSession;
-        private readonly Vector3[] _positions = { new(-2, 0, 0), new(0, 0, 2), new(2, 0, -2) };
+
+        private readonly Vector3[] _positions = { new(-2, 0, 0), new(0, 0, 2), new(2, 0, -2) }; // Temporery for debugging
 
         private void OnEnable()
         {
@@ -32,14 +33,14 @@ namespace HW2.Scripts
         private void Start() =>
             _runnerSession = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
 
-        [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
+        [Rpc(sources: RpcSources.All, targets: RpcTargets.StateAuthority)]
         public void Rpc_RequestCharacterSelection(Color characterColor, Vector3 spawnPosition,
             RpcInfo info = default)
         {
             if (_takenCharactersColor.Add(characterColor))
             {
                 // Adding the color if there isnt same color there
-                // Approve
+                // Approved
                 RPC_CharacterApproved(info, characterColor, spawnPosition);
             }
             else
@@ -49,27 +50,36 @@ namespace HW2.Scripts
             }
         }
 
-        [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.InputAuthority)]
-        private void RPC_CharacterApproved(RpcInfo runner, Color characterColor, Vector3 spawnPosition)
+        [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.All)]
+        private void RPC_CharacterApproved(RpcInfo info, Color characterColor, Vector3 spawnPosition)
         {
+            //if (_runnerSession.LocalPlayer != info.Source) return;
+            if (!this.HasStateAuthority) return; // Only the host does the spawning
+
+
             Debug.Log($"Character {characterColor} approved. Spawning...");
 
             // Spawn Logic :
-            SpawnPlayer(characterColor);
+            CharacterCapsule playerToSpawn = _runnerSession.Spawn(playerCapsulePrefab);
+            playerToSpawn.MyColor = characterColor;
+            //SpawnPlayer(characterColor);
         }
 
-        [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.InputAuthority)]
-        private void RPC_CharacterDenied(RpcInfo runner)
+        [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.All)]
+        private void RPC_CharacterDenied(RpcInfo info)
         {
+            if (!this.HasStateAuthority) return; // Only the host does the spawning
+
             Debug.Log("Character already taken. Choose another.");
 
-            // Trigger UI update or retry
+            // Trigger UI update or retry - Pop up already taken 
         }
+
 
         private void SpawnPlayer(Color color)
         {
             CharacterCapsule playerToSpawn = _runnerSession.Spawn(playerCapsulePrefab);
-            playerToSpawn.SetColor(color);
+            playerToSpawn.MyColor = color;
         }
 
         private void OnValidate()

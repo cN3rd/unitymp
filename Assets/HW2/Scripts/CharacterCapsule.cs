@@ -1,13 +1,24 @@
 using Fusion;
+using System;
 using UnityEngine;
 
 public class CharacterCapsule : NetworkBehaviour
 {
     [SerializeField] MeshRenderer meshRenderer;
 
-    public void SetColor(Color color = default)
+    [Networked, OnChangedRender(nameof(SetColor))] public Color MyColor {  get; set; }
+
+    public override void Spawned()
     {
-        meshRenderer.material.color = color;
+        // Apply color when object is first seen
+        SetColor();
+    }
+
+    public void SetColor()
+    {
+        //myColor = color;
+        meshRenderer.material.color = MyColor;
+        Debug.Log($"Colored Change {MyColor}");
     }
 
 
@@ -18,4 +29,11 @@ public class CharacterCapsule : NetworkBehaviour
             meshRenderer = GetComponent<MeshRenderer>();
         }
     }
+}
+
+[System.Serializable]
+public struct CharacterData
+{
+    Color MeshColor;
+    string Name;
 }
