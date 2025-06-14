@@ -6,11 +6,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HW1.Scripts
+namespace HW2.Scripts
 {
     public class LobbyManager : MonoBehaviour
     {
         [SerializeField] private NetworkRunner runnerPrefab;
+        [SerializeField] private GameObject playerDataPrefab;
 
         [Header("Top view GUI")]
         [SerializeField] private TMP_InputField playerNameInputField;
@@ -63,8 +64,15 @@ namespace HW1.Scripts
             UpdateUIState();
         }
 
-        private void OnDestroy() => CleanupAllConnections();
-        
+        private void OnDestroy()
+        {
+            CleanupAllConnections();
+            if (_playerNameContainer)
+            {
+                _playerNameContainer.OnPlayerListChanged -= OnPlayerListChanged;
+            }
+        }
+
         #region Creation Operations
         
         private void CreateLobbyRunner()
@@ -265,6 +273,17 @@ namespace HW1.Scripts
             UpdateUIState();
         }
 
+        private PlayerData SpawnPlayerData()
+        {
+            var playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
+            _sessionRunner.SetPlayerObject(_sessionRunner.LocalPlayer, playerDataObject);
+            
+            var playerData = playerDataObject.GetComponent<PlayerData>();
+            playerData.Nickname = playerNameInputField.text;
+            
+            return playerData;
+        }
+
         private async void JoinSession(SessionInfo session)
         {
             try
@@ -285,6 +304,7 @@ namespace HW1.Scripts
                     errorPopup.ShowError(result.ErrorMessage);
                     CleanupSessionConnection();
                 }
+                
                 _isJoiningSession = false;
             }
             catch (Exception ex)
@@ -310,10 +330,11 @@ namespace HW1.Scripts
         public void SetPlayerNameContainer(PlayerNameContainer pnc)
         {
             _playerNameContainer = pnc;
-            _playerNameContainer.OnPlayerNamesChanged += playerListUI.RefreshPlayerList;
+            _playerNameContainer.OnPlayerListChanged += OnPlayerListChanged;
+            SpawnPlayerData();
         }
 
-        public string GetCurrentPlayerName() => playerNameInputField.text;
+        private void OnPlayerListChanged(List<string> playerList) => playerListUI.RefreshPlayerList(playerList);
 
         #endregion
 

@@ -1,13 +1,14 @@
 {
-    "name": "HW1",
+    "name": "HW2.Testing",
     "rootNamespace": "",
     "references": [
         "GUID:1baf1ffff1031e948b3b228ab3453251",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "GUID:9b3ab2fe89988e946b1e094096d0f53d",
+        "GUID:767f25efd20d4339a8b1683f8dc1d7d8"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
