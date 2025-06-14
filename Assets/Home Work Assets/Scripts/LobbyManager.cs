@@ -48,6 +48,8 @@ namespace HW1.Scripts
         private PlayerNameContainer _playerNameContainer;
 
         public static LobbyManager Instance { get; private set; }
+        public NetworkRunner SessionRunnerInstance => _sessionRunner; // For getting the option to use Spawn()
+
 
         public void Start()
         {
