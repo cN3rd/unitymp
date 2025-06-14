@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Fusion;
-using HW1.Scripts;
+using HW2.Scripts;
 public class CharacterSelectionManager : NetworkBehaviour
 {
     [Header("HUD Stuff")]
@@ -14,13 +14,30 @@ public class CharacterSelectionManager : NetworkBehaviour
 
     private HashSet<Color> takenCharactersColor = new HashSet<Color>();
 
+    private NetworkRunner _runnerSession; // For Debugging - This object need to be spawned on load scene or conctted there
+    private Vector3[] positions = new Vector3[] // Temporery positions that the Players can spawn. Need to be calculted like what Lior did at the class
+    {
+    new Vector3(-2, 0, 0),
+    new Vector3(0, 0, 2),
+    new Vector3(2, 0, -2)
+    };
+
     private void OnEnable()
     {
         foreach (CharacterButton button in selectButtons)
         {
-            button.OnButtonClicked += SpawnPlayer;
+            button.OnButtonClicked += (Color selectedColor) =>
+            {
+                Vector3 randomSpawn = positions[Random.Range(0, positions.Length)];
+                Rpc_RequestCharacterSelection(selectedColor, randomSpawn);
+            };
         }
     }
+    public void AssignNetwork(NetworkRunner runner)
+    {
+        _runnerSession = runner; 
+    }
+
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
     public void Rpc_RequestCharacterSelection(Color characterColor, Vector3 spawnPosition, RpcInfo info = default)
     {
@@ -51,14 +68,13 @@ public class CharacterSelectionManager : NetworkBehaviour
     private void RPC_CharacterDenied(RpcInfo runner)
     {
         Debug.Log("Character already taken. Choose another.");
+
         // Trigger UI update or retry
     }
 
     private void SpawnPlayer(Color color)
     {
-        NetworkRunner networkRunner = LobbyManager.Instance.SessionRunnerInstance;
-
-        CharacterCapsule playerToSpawn = networkRunner.Spawn(playerCapsulePrefab);
+        CharacterCapsule playerToSpawn = _runnerSession.Spawn(playerCapsulePrefab);
         playerToSpawn.SetColor(color);
     }
 

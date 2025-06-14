@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshFilter: {fileID: 1612489278989569010}
-  meshRenderer: {fileID: 0}
+  meshRenderer: {fileID: 7931609785765560652}
 --- !u!114 &6386009731037344429
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -24,7 +24,7 @@ public class CharacterButton : MonoBehaviour
 
     public void CharacterSelected()
     {
-        Debug.Log($"You Clicked On Me {this.gameObject.name}");
+        Debug.Log($"You Clicked On Me {ButtonCharacterColor}");
         OnButtonClicked?.Invoke(characterImage.color);
     }
 
