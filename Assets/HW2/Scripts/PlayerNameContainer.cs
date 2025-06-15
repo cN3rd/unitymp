@@ -11,6 +11,8 @@ namespace HW2.Scripts
         [Networked, Capacity(20), OnChangedRender(nameof(OnPlayerDictionaryChanged))]
         private NetworkDictionary<PlayerRef, NetworkString<_32>> Players => default;
 
+        public NetworkDictionary<PlayerRef, NetworkString<_32>> PlayersDictionary => Players;
+
         public static PlayerNameContainer Instance;
         
         private void Start()

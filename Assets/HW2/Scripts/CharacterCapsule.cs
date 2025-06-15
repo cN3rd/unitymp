@@ -1,27 +1,46 @@
 using Fusion;
 using System;
 using UnityEngine;
+using HW2;
+using HW2.Scripts;
 
 public class CharacterCapsule : NetworkBehaviour
 {
+    [Networked, OnChangedRender(nameof(OnColorChanged))]
+    public Color MeshColor { get; set; }
+
+    [Networked, OnChangedRender(nameof(OnNameChanged))]
+    public NetworkString<_32> PlayerName { get; set; } // Idan You Can Take This For Your Chat 
     [SerializeField] MeshRenderer meshRenderer;
 
-    [Networked, OnChangedRender(nameof(SetColor))] public Color MyColor {  get; set; }
+
+    /*
+    #region << Why Its Not Working? >>
+    [Networked, OnChangedRender(nameof(OnCharacterDataChanged))] public CharacterData MyData { get; set; }
+    public void OnCharacterDataChanged()
+    {
+        //myColor = color;
+        //meshRenderer.material.color = MyData.MeshColor;
+        //this.gameObject.name = MyData.Name;
+    }
+    #endregion
+    */
+    public void OnColorChanged()
+    {
+        meshRenderer.material = new Material(meshRenderer.material);
+        meshRenderer.material.color = MeshColor;
+    }
+
+    public void OnNameChanged()
+    {
+        gameObject.name = PlayerName.ToString();
+    }
 
     public override void Spawned()
     {
-        // Apply color when object is first seen
-        SetColor();
+        OnColorChanged();
+        OnNameChanged();
     }
-
-    public void SetColor()
-    {
-        //myColor = color;
-        meshRenderer.material.color = MyColor;
-        Debug.Log($"Colored Change {MyColor}");
-    }
-
-
     private void OnValidate()
     {
         if (!meshRenderer)
@@ -29,11 +48,4 @@ public class CharacterCapsule : NetworkBehaviour
             meshRenderer = GetComponent<MeshRenderer>();
         }
     }
-}
-
-[System.Serializable]
-public struct CharacterData
-{
-    Color MeshColor;
-    string Name;
 }
