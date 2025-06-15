@@ -63,6 +63,15 @@ namespace HW2.Scripts
             AddPlayerRPC("unknown");
             OnPlayerDictionaryChanged();
         }
+        
+        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+        public void Rpc_SendPrivateMessage(PlayerRef targetPlayer, string message, RpcInfo info = default)
+        {
+            if (Runner.LocalPlayer == targetPlayer)
+            {
+                PrivateMessageUI.Instance?.ShowMessage(message);
+            }
+        }
 
         public void PlayerLeft(PlayerRef player) => RemovePlayerRPC(player);
 

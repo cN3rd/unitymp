@@ -439,6 +439,11 @@ namespace HW2.Scripts
 
             _roomButtons.Add(sessionObject);
         }
+        public void SendPrivateMessageToPlayer(PlayerRef targetPlayer, string message)
+        {
+            PlayerNameContainer.Instance.Rpc_SendPrivateMessage(targetPlayer, message);
+        }
+
 
         #endregion
 
