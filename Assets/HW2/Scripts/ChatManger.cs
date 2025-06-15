@@ -1,34 +1,29 @@
 using TMPro;
 using UnityEngine;
-using Fusion;
+using HW2.Scripts; // So PlayerData is recognized
 
-public class ChatManager : NetworkBehaviour
+public class ChatManager : MonoBehaviour
 {
-    public static ChatManager Instance;
-
     [Header("UI References")]
-    [SerializeField] private GameObject inputContainer;      // The panel containing the input field
-    [SerializeField] private TMP_InputField inputField;      // Where the user types messages
-    [SerializeField] private TextMeshProUGUI chatHistoryText; // Displays chat log
+    [SerializeField] private GameObject inputContainer;
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private TextMeshProUGUI chatHistoryText;
 
     private bool isChatOpen = false;
+    private PlayerData owner; 
+
+    public void SetOwner(PlayerData player) 
+    {
+        owner = player;
+    }
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
-
-        if (inputContainer != null)
-            inputContainer.SetActive(false); // Hide chat input on start
+        inputContainer.SetActive(false);
     }
 
     private void Update()
     {
-        if (!HasInputAuthority)
-            return; // Only local player can open chat
-
         if (Input.GetKeyDown(KeyCode.Return))
         {
             if (!isChatOpen)
@@ -41,6 +36,7 @@ public class ChatManager : NetworkBehaviour
                 {
                     SendMessageToAll();
                 }
+
                 CloseChat();
             }
         }
@@ -63,28 +59,15 @@ public class ChatManager : NetworkBehaviour
 
     private void SendMessageToAll()
     {
-        if (Runner == null)
-        {
-            Debug.LogError("Runner is null! Make sure ChatManager is attached to a spawned NetworkObject.");
-            return;
-        }
-
         string message = inputField.text.Trim();
         if (!string.IsNullOrEmpty(message))
         {
-            Rpc_SendMessageToAll($"{Runner.LocalPlayer.PlayerId}: {message}");
+            owner?.SendChatMessage(message); 
         }
     }
 
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    private void Rpc_SendMessageToAll(string message)
+    public void ReceiveMessageLocally(string message)
     {
-        if (chatHistoryText == null)
-        {
-            Debug.LogError("chatHistoryText is null. Assign it in the Inspector.");
-            return;
-        }
-
         chatHistoryText.text += message + "\n";
     }
 }
