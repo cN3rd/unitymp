@@ -4,10 +4,11 @@ using UnityEngine.UI;
 
 public class CharacterButton : MonoBehaviour
 {
-    public event UnityAction<Color> OnButtonClicked;
+    public event UnityAction<Color,Transform> OnButtonClicked;
 
     [SerializeField] Button button;
     [SerializeField] Image characterImage; // Can be actucal character image
+    [SerializeField] Transform spawnPoint;
     public Color ButtonCharacterColor => characterImage.color;
 
     [SerializeField] Color color;
@@ -25,7 +26,7 @@ public class CharacterButton : MonoBehaviour
     public void CharacterSelected()
     {
         Debug.Log($"You Clicked On Me {ButtonCharacterColor}");
-        OnButtonClicked?.Invoke(characterImage.color);
+        OnButtonClicked?.Invoke(characterImage.color, spawnPoint);
     }
 
     private void OnValidate()
