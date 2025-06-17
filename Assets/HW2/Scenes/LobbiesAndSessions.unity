@@ -5156,7 +5156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   runnerPrefab: {fileID: 8112399412608552033, guid: 975db60bb40ac284f82883b61688b30b, type: 3}
-  playerDataPrefab: {fileID: 0}
+  playerDataPrefab: {fileID: 8220138658691515704, guid: b26c577b073f17e46a82e8293b55e4cd, type: 3}
   playerNameInputField: {fileID: 1735737027}
   lobbyDropdown: {fileID: 1379421195}
   joinLobbyButton: {fileID: 2113786113}
