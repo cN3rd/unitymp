@@ -7,23 +7,29 @@ namespace HW2.Scripts
     public class CharacterButton : MonoBehaviour
     {
         [SerializeField] private Button button;
-        [SerializeField] private Image characterImage; // Can be actual character image
+        [SerializeField] private Image characterImage;
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private Color color;
         
-        public Color ButtonCharacterColor => characterImage.color;
-
-        private void OnEnable()
+        private void Awake()
         {
             Debug.Log($"Enabled button \"{button.gameObject.name}\"");
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(CharacterSelected);
         }
+        public event UnityAction<Color, Transform> OnButtonClicked;
 
+        private void CharacterSelected()
+        {
+            Color characterColor = characterImage.color;
+            Debug.Log($"You Clicked On Me {characterColor}");
+            OnButtonClicked?.Invoke(characterColor, spawnPoint);
+        }
+        
+        #if UNITY_EDITOR
         private void OnValidate()
         {
             #region << Easy way to control the image colors
-
             if (!characterImage)
             {
                 foreach (Transform child in transform)
@@ -33,31 +39,13 @@ namespace HW2.Scripts
                 }
             }
 
-            if (characterImage.color != color)
+            if (characterImage.color != color || characterImage.color.a < 1)
             {
-                color.a = 1;
-                characterImage.color = color;
-            }
-
-            if (characterImage.color.a < 1)
-            {
-                Color color = characterImage.color;
-                color.a = 1;
-
-                characterImage.color = color;
+                characterImage.color = new Color(color.r, color.g, color.b, 1);
             }
 
             #endregion
         }
-
-        public event UnityAction<Color, Transform> OnButtonClicked;
-
-        public void SetColor(Color newColor) => characterImage.color = newColor;
-
-        public void CharacterSelected()
-        {
-            Debug.Log($"You Clicked On Me {ButtonCharacterColor}");
-            OnButtonClicked?.Invoke(characterImage.color, spawnPoint);
-        }
+        #endif
     }
 }

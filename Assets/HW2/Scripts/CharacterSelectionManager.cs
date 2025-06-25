@@ -31,22 +31,6 @@ namespace HW2.Scripts
             }
         }
 
-        private void OnValidate()
-        {
-            if (selectButtons.Count <= 0 && charcterButtonParent)
-            {
-                selectButtons.Clear(); // Clear first to avoid duplicates
-                foreach (RectTransform child in charcterButtonParent)
-                {
-                    CharacterButton characterButton = child.GetComponent<CharacterButton>();
-                    if (characterButton != null) // Add null check
-                    {
-                        selectButtons.Add(characterButton);
-                    }
-                }
-            }
-        }
-
         public override void Spawned()
         {
             base.Spawned();
@@ -105,15 +89,8 @@ namespace HW2.Scripts
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_CharacterDenied([RpcTarget] PlayerRef targetPlayer)
-        {
-            if (!characterSelectionUI.gameObject
-                    .activeSelf) // A way to skip this function when its called multiple times
-                return;
-
-            errorPopup?.ShowError("Character already taken. Choose another");
-            // Trigger UI update or retry - Pop up already taken 
-        }
+        private void RPC_CharacterDenied([RpcTarget] PlayerRef targetPlayer) 
+            => errorPopup?.ShowError("Character already taken. Choose another");
 
         private void SpawnPlayerCharacter(PlayerRef playerRef, Color characterColor,
             Vector3 spawnPosition)
@@ -133,5 +110,22 @@ namespace HW2.Scripts
             
             playerToSpawn.Color = characterColor;
         }
+        
+        #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (selectButtons.Count > 0 || !charcterButtonParent) return;
+            selectButtons.Clear();
+            
+            foreach (RectTransform child in charcterButtonParent)
+            {
+                CharacterButton characterButton = child.GetComponent<CharacterButton>();
+                if (characterButton != null)
+                {
+                    selectButtons.Add(characterButton);
+                }
+            }
+        }
+        #endif
     }
 }
