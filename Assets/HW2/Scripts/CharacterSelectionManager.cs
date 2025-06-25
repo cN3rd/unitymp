@@ -20,32 +20,33 @@ namespace HW2.Scripts
         private NetworkRunner _runnerSession;
         private bool _hasSelectedCharacter = false;
 
-        private void OnEnable()
+        public override void Spawned()
         {
+            base.Spawned();
             foreach (CharacterButton button in selectButtons)
             {
-                button.OnButtonClicked += (Color selectedColor, Transform spawnPointPosition) =>
-                {
-                    // Prevent multiple selections
-                    if (_hasSelectedCharacter)
-                    {
-                        errorPopup?.ShowError("You have already selected a character.");
-                        return;
-                    }
-
-                    Rpc_RequestCharacterSelection(selectedColor, spawnPointPosition.transform.position);
-                };
+                button.OnButtonClicked += OnButtonOnOnButtonClicked;
             }
+        }
+
+        private void OnButtonOnOnButtonClicked(Color selectedColor, Transform spawnPointPosition)
+        {
+            // Prevent multiple selections
+            if (_hasSelectedCharacter)
+            {
+                errorPopup?.ShowError("You have already selected a character.");
+                return;
+            }
+
+            Debug.Log("Button clicked");
+            Rpc_RequestCharacterSelection(selectedColor, spawnPointPosition.transform.position);
         }
 
         private void OnDisable()
         {
             foreach (CharacterButton button in selectButtons)
             {
-                button.OnButtonClicked -= (Color selectedColor, Transform spawnPointPosition) =>
-                {
-                    Rpc_RequestCharacterSelection(selectedColor, spawnPointPosition.transform.position);
-                };
+                button.OnButtonClicked -= OnButtonOnOnButtonClicked;
             }
         }
 
@@ -106,11 +107,8 @@ namespace HW2.Scripts
         }
 
         [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.All)]
-        private void RPC_CharacterDenied(PlayerRef targetPlayer)
+        private void RPC_CharacterDenied([RpcTarget] PlayerRef targetPlayer)
         {
-            if (_runnerSession.LocalPlayer != targetPlayer)
-                return;
-
             if (!characterSelectionUI.gameObject.activeSelf) // A way to skip this function when its called multiple times
                 return;
 

@@ -15,6 +15,8 @@ public class CharacterButton : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log($"Enabled button \"{button.gameObject.name}\"");
+        button.onClick.RemoveAllListeners();
         button.onClick.AddListener(CharacterSelected);
     }
 
