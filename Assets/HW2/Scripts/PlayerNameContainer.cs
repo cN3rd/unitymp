@@ -17,7 +17,7 @@ namespace HW2.Scripts
 
         public NetworkDictionary<PlayerRef, NetworkString<_32>> PlayersDictionary => Players;
 
-        private void Start()
+        private void Awake()
         {
             if (Instance == null) Instance = this;
         }
