@@ -2,58 +2,62 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class CharacterButton : MonoBehaviour
+namespace HW2.Scripts
 {
-    public event UnityAction<Color,Transform> OnButtonClicked;
-
-    [SerializeField] Button button;
-    [SerializeField] Image characterImage; // Can be actucal character image
-    [SerializeField] Transform spawnPoint;
-    public Color ButtonCharacterColor => characterImage.color;
-
-    [SerializeField] Color color;
-
-    private void OnEnable()
+    public class CharacterButton : MonoBehaviour
     {
-        Debug.Log($"Enabled button \"{button.gameObject.name}\"");
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(CharacterSelected);
-    }
+        [SerializeField] private Button button;
+        [SerializeField] private Image characterImage; // Can be actual character image
+        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private Color color;
+        
+        public Color ButtonCharacterColor => characterImage.color;
 
-    public void SetColor(Color color)
-    {
-        characterImage.color = color;
-    }
-
-    public void CharacterSelected()
-    {
-        Debug.Log($"You Clicked On Me {ButtonCharacterColor}");
-        OnButtonClicked?.Invoke(characterImage.color, spawnPoint);
-    }
-
-    private void OnValidate()
-    {
-        #region << Easy way to control the image colors
-        if (!characterImage)
+        private void OnEnable()
         {
-            foreach (Transform child in this.transform)
+            Debug.Log($"Enabled button \"{button.gameObject.name}\"");
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(CharacterSelected);
+        }
+
+        private void OnValidate()
+        {
+            #region << Easy way to control the image colors
+
+            if (!characterImage)
             {
-                characterImage = child.GetComponent<Image>();
-                if (characterImage != null) break;
+                foreach (Transform child in transform)
+                {
+                    characterImage = child.GetComponent<Image>();
+                    if (characterImage != null) break;
+                }
             }
-        }
-        if (characterImage.color != color)
-        {
-            color.a = 1;
-            characterImage.color = color;
-        }
-        if (characterImage.color.a < 1)
-        {
-            Color color = characterImage.color;
-            color.a = 1;
 
-            characterImage.color = color;
+            if (characterImage.color != color)
+            {
+                color.a = 1;
+                characterImage.color = color;
+            }
+
+            if (characterImage.color.a < 1)
+            {
+                Color color = characterImage.color;
+                color.a = 1;
+
+                characterImage.color = color;
+            }
+
+            #endregion
         }
-        #endregion
+
+        public event UnityAction<Color, Transform> OnButtonClicked;
+
+        public void SetColor(Color newColor) => characterImage.color = newColor;
+
+        public void CharacterSelected()
+        {
+            Debug.Log($"You Clicked On Me {ButtonCharacterColor}");
+            OnButtonClicked?.Invoke(characterImage.color, spawnPoint);
+        }
     }
 }

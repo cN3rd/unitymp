@@ -7,6 +7,6 @@ namespace HW2.Scripts
     {
         [SerializeField] private TMP_InputField usernameInputField;
 
-        void Start() => usernameInputField.text = SillyId.GenerateGamertag();
+        private void Start() => usernameInputField.text = SillyId.GenerateGamertag();
     }
 }

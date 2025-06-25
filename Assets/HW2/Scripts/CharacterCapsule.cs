@@ -1,39 +1,36 @@
 using Fusion;
-using System;
 using UnityEngine;
-using HW2;
-using HW2.Scripts;
 
-public class CharacterCapsule : NetworkBehaviour
+namespace HW2.Scripts
 {
-    [Networked, OnChangedRender(nameof(OnColorChanged))]
-    public Color MeshColor { get; set; }
-
-    [Networked, OnChangedRender(nameof(OnNameChanged))]
-    public NetworkString<_32> PlayerName { get; set; } // Idan You Can Take This For Your Chat 
-    [SerializeField] MeshRenderer meshRenderer;
-
-    public void OnColorChanged()
+    public class CharacterCapsule : NetworkBehaviour
     {
-        meshRenderer.material.color = MeshColor;
-    }
+        [SerializeField] private MeshRenderer meshRenderer;
 
-    public void OnNameChanged()
-    {
-        gameObject.name = PlayerName.ToString();
-    }
+        [Networked]
+        [OnChangedRender(nameof(OnColorChanged))]
+        public Color MeshColor { get; set; }
 
-    public override void Spawned()
-    {
-        OnColorChanged();
-        OnNameChanged();
-    }
+        [Networked]
+        [OnChangedRender(nameof(OnNameChanged))]
+        public NetworkString<_32> PlayerName { get; set; } // Idan You Can Take This For Your Chat 
 
-    private void OnValidate()
-    {
-        if (!meshRenderer)
+        private void OnValidate()
         {
-            meshRenderer = GetComponent<MeshRenderer>();
+            if (!meshRenderer)
+            {
+                meshRenderer = GetComponent<MeshRenderer>();
+            }
+        }
+
+        public void OnColorChanged() => meshRenderer.material.color = MeshColor;
+
+        public void OnNameChanged() => gameObject.name = PlayerName.ToString();
+
+        public override void Spawned()
+        {
+            OnColorChanged();
+            OnNameChanged();
         }
     }
 }

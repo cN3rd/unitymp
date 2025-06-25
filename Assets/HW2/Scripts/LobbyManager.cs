@@ -19,8 +19,7 @@ namespace HW2.Scripts
         [SerializeField] private Button joinLobbyButton;
         [SerializeField] private Button newRoomButton;
 
-        [Header("List view")]
-        [SerializeField] private RectTransform listPanel;
+        [Header("List view")] [SerializeField] private RectTransform listPanel;
         [SerializeField] private GameObject listItemTemplate;
         [SerializeField] private TextMeshProUGUI statusText;
 
@@ -31,8 +30,9 @@ namespace HW2.Scripts
         [Header("Name list")]
         [SerializeField] private PlayerListUI playerListUI;
         [SerializeField] private GameObject nameContainerPrefab;
-        private readonly List<GameObject> _roomButtons = new();
         
+        private readonly List<GameObject> _roomButtons = new();
+
         // state tracking
         private bool _canEnableJoinLobbyButton = true;
         private bool _isJoiningLobby;
@@ -41,18 +41,14 @@ namespace HW2.Scripts
         // lobby things
         private LobbyNetworkCallbackHandler _lobbyCallbackHandler;
         private NetworkRunner _lobbyRunner;
-        private List<SessionInfo> _sessions = new();
-        
+        private PlayerNameContainer _playerNameContainer;
+
         // network runner things
         private SessionNetworkCallbackHandler _sessionCallbackHandler;
         private NetworkRunner _sessionRunner;
-        private PlayerNameContainer _playerNameContainer;
+        private List<SessionInfo> _sessions = new();
 
         public static LobbyManager Instance { get; private set; }
-
-        [Header("Dror Debugging SStuff")]
-        //public NetworkRunner SessionRunnerInstance => _sessionRunner; // For getting the option to use Spawn()
-        [SerializeField] CharacterSelectionManager characterSelectionManagerPrefab;
 
         public void Start()
         {
@@ -76,7 +72,7 @@ namespace HW2.Scripts
         }
 
         #region Creation Operations
-        
+
         private void CreateLobbyRunner()
         {
             _lobbyRunner = Instantiate(runnerPrefab);
@@ -85,9 +81,10 @@ namespace HW2.Scripts
                 HandleLobbyConnected,
                 HandleLobbyDisconnected
             );
+
             _lobbyRunner.AddCallbacks(_lobbyCallbackHandler);
         }
-        
+
         private void CreateSessionRunner()
         {
             _sessionRunner = Instantiate(runnerPrefab);
@@ -97,6 +94,7 @@ namespace HW2.Scripts
                 HandleSessionPlayerJoined,
                 HandleSessionPlayerLeft
             );
+
             _sessionRunner.AddCallbacks(_sessionCallbackHandler);
         }
 
@@ -130,7 +128,7 @@ namespace HW2.Scripts
 
             _sessions.Clear();
         }
-        
+
         private void CleanupSessionConnection()
         {
             if (_sessionRunner != null)
@@ -151,7 +149,7 @@ namespace HW2.Scripts
 
             _playerNameContainer = null;
         }
-        
+
         private async void ShutdownSessionSafely()
         {
             try
@@ -196,8 +194,15 @@ namespace HW2.Scripts
 
         private void HandleSessionDisconnected(NetDisconnectReason reason) => UpdateUIState();
 
-        private void HandleSessionPlayerJoined(PlayerRef player) { /* Intentionally empty */ }
-        private void HandleSessionPlayerLeft(PlayerRef player) { /* Intentionally empty */ }
+        private void HandleSessionPlayerJoined(PlayerRef player)
+        {
+            /* Intentionally empty */
+        }
+
+        private void HandleSessionPlayerLeft(PlayerRef player)
+        {
+            /* Intentionally empty */
+        }
 
         #endregion
 
@@ -210,7 +215,7 @@ namespace HW2.Scripts
                 _canEnableJoinLobbyButton = false;
                 _isJoiningLobby = true;
                 UpdateUIState();
-                
+
                 CleanupSessionConnection();
                 CleanupLobbyConnection();
                 CreateLobbyRunner();
@@ -277,12 +282,12 @@ namespace HW2.Scripts
 
         private PlayerData SpawnPlayerData()
         {
-            var playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
+            NetworkObject playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
             _sessionRunner.SetPlayerObject(_sessionRunner.LocalPlayer, playerDataObject);
-            
-            var playerData = playerDataObject.GetComponent<PlayerData>();
+
+            PlayerData playerData = playerDataObject.GetComponent<PlayerData>();
             playerData.Nickname = playerNameInputField.text;
-            
+
             return playerData;
         }
 
@@ -306,12 +311,7 @@ namespace HW2.Scripts
                     errorPopup.ShowError(result.ErrorMessage);
                     CleanupSessionConnection();
                 }
-
-                //#region << Dror - Debugging Functionality >>
-                //CharacterSelectionManager characterSelectionManager = _sessionRunner.Spawn(characterSelectionManagerPrefab);
-                //characterSelectionManager.AssignNetwork(_sessionRunner);
-                //#endregion
-
+                
                 _isJoiningSession = false;
             }
             catch (Exception ex)
@@ -341,7 +341,8 @@ namespace HW2.Scripts
             SpawnPlayerData();
         }
 
-        private void OnPlayerListChanged(List<string> playerList) => playerListUI.RefreshPlayerList(playerList);
+        private void OnPlayerListChanged(List<string> playerList) =>
+            playerListUI.RefreshPlayerList(playerList);
 
         #endregion
 
@@ -401,6 +402,7 @@ namespace HW2.Scripts
             {
                 if (button) Destroy(button);
             }
+
             _roomButtons.Clear();
 
             if (!isLobbyConnected) return;

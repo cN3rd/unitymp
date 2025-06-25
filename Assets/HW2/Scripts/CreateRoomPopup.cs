@@ -7,8 +7,9 @@ namespace HW2.Scripts
 {
     public class CreateRoomPopup : PopupBase
     {
-        [Header("Popup-specific")]
-        [SerializeField] private TMP_InputField roomNameInput;
+        [Header("Popup-specific")] [SerializeField]
+        private TMP_InputField roomNameInput;
+
         [SerializeField] private TMP_Dropdown numberPlayersDropdown;
         [SerializeField] private Button createRoomButton;
 

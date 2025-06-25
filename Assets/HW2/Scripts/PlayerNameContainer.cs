@@ -8,29 +8,41 @@ namespace HW2.Scripts
 {
     public class PlayerNameContainer : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     {
-        [Networked, Capacity(20), OnChangedRender(nameof(OnPlayerDictionaryChanged))]
+        public static PlayerNameContainer Instance;
+
+        [Networked]
+        [Capacity(20)]
+        [OnChangedRender(nameof(OnPlayerDictionaryChanged))]
         private NetworkDictionary<PlayerRef, NetworkString<_32>> Players => default;
 
         public NetworkDictionary<PlayerRef, NetworkString<_32>> PlayersDictionary => Players;
 
-        public static PlayerNameContainer Instance;
-        
         private void Start()
         {
             if (Instance == null) Instance = this;
         }
 
+        public void PlayerJoined(PlayerRef player)
+        {
+            if (player != Runner.LocalPlayer) return;
+
+            AddPlayerRPC("unknown");
+            OnPlayerDictionaryChanged();
+        }
+
+        public void PlayerLeft(PlayerRef player) => RemovePlayerRPC(player);
+
         public event Action<List<string>> OnPlayerListChanged;
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        public void NotifyPlayerNameChangeRPC(NetworkString<_32> newPlayerName,RpcInfo info = default)
+        public void NotifyPlayerNameChangeRPC(NetworkString<_32> newPlayerName, RpcInfo info = default)
         {
             Debug.Log($"Got change name request: {info.Source}, {newPlayerName}");
             if (!Object.HasStateAuthority) return;
 
             Players.Set(info.Source, newPlayerName);
         }
-        
+
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void AddPlayerRPC(NetworkString<_32> playerName, RpcInfo info = default)
         {
@@ -59,15 +71,7 @@ namespace HW2.Scripts
             PlayerJoined(Runner.LocalPlayer);
         }
 
-        public void PlayerJoined(PlayerRef player)
-        {
-            if (player != Runner.LocalPlayer) return;
-            AddPlayerRPC("unknown");
-            OnPlayerDictionaryChanged();
-        }
-
-        public void PlayerLeft(PlayerRef player) => RemovePlayerRPC(player);
-
-        public override void Despawned(NetworkRunner runner, bool hasState) => OnPlayerListChanged?.Invoke(new List<string>());
+        public override void Despawned(NetworkRunner runner, bool hasState) =>
+            OnPlayerListChanged?.Invoke(new List<string>());
     }
 }
