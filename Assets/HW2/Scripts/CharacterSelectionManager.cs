@@ -15,8 +15,8 @@ namespace HW2.Scripts
 
         [Header("Player Stuff")]
         [SerializeField] private CharacterCapsule playerCapsulePrefab;
-        
-        private readonly HashSet<string> _takenCharactersColor = new();
+
+        private readonly HashSet<Color> _takenCharactersColor = new();
         private bool _hasSelectedCharacter;
         private NetworkRunner _runnerSession;
 
@@ -70,33 +70,27 @@ namespace HW2.Scripts
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        public void Rpc_RequestCharacterSelection(Color characterColor, Vector3 spawnPosition,
+        private void Rpc_RequestCharacterSelection(Color color, Vector3 spawnPosition,
             RpcInfo info = default)
         {
-            string colorString = ColorToString(characterColor);
-            Debug.Log($"Checking Color {colorString} if available for player {info.Source}");
-
-            // Only state authority should manage character selection
             if (!HasStateAuthority)
             {
                 Debug.LogError("Only state authority can handle character selection!");
                 return;
             }
-
-            if (_takenCharactersColor.Add(colorString))
+            
+            Debug.Log($"Checking Color {color} if available for player {info.Source}");
+            if (_takenCharactersColor.Add(color))
             {
-                // Adding the color if there isn't same color there
                 // Approved - Pass the actual requesting player as parameter
-                Debug.Log($"Character {colorString} approved for player {info.Source}");
-                RPC_CharacterApproved(info.Source, characterColor,
-                    spawnPosition); // Pass info.Source as parameter
+                Debug.Log($"Character {color} approved for player {info.Source}");
+                RPC_CharacterApproved(info.Source, color, spawnPosition);
             }
             else
             {
-                // Deny
-                Debug.Log($"Character {colorString} denied - already taken");
-                RPC_CharacterDenied(info
-                    .Source); // Color already exists so you can't take that character
+                // Denied - color is already taken
+                Debug.Log($"Character {color} denied - already taken");
+                RPC_CharacterDenied(info.Source);
             }
         }
 
@@ -139,8 +133,5 @@ namespace HW2.Scripts
             
             playerToSpawn.Color = characterColor;
         }
-
-        private string ColorToString(Color color) =>
-            $"{color.r:F3},{color.g:F3},{color.b:F3},{color.a:F3}";
     }
 }
