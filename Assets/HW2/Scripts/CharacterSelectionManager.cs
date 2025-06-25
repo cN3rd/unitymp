@@ -101,27 +101,13 @@ namespace HW2.Scripts
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_CharacterApproved(PlayerRef originalPlayer, Color characterColor,
+        private void RPC_CharacterApproved([RpcTarget] PlayerRef targetPlayer, Color characterColor,
             Vector3 spawnPosition)
         {
-            // Only the state authority spawns the player
-            if (HasStateAuthority)
-            {
-                SpawnPlayerCharacter(originalPlayer, characterColor, spawnPosition);
-            }
-
-            // Only hide UI for the player who made the selection
-            if (_runnerSession.LocalPlayer == originalPlayer)
-            {
-                // Mark as selected to prevent future selections
-                _hasSelectedCharacter = true;
-
-                // Hide selection UI for this player only
-                if (characterSelectionUI != null)
-                {
-                    characterSelectionUI.SetActive(false);
-                }
-            }
+            SpawnPlayerCharacter(targetPlayer, characterColor, spawnPosition);
+            
+            _hasSelectedCharacter = true;
+            characterSelectionUI?.SetActive(false);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -138,12 +124,11 @@ namespace HW2.Scripts
         private void SpawnPlayerCharacter(PlayerRef playerRef, Color characterColor,
             Vector3 spawnPosition)
         {
-            // Spawn Logic - Set Player Data
             CharacterCapsule playerToSpawn = _runnerSession.Spawn(
                 playerCapsulePrefab,
                 spawnPosition,
                 Quaternion.identity,
-                playerRef // Assign input authority to the correct player
+                playerRef
             );
 
             if (playerToSpawn == null)
@@ -151,33 +136,11 @@ namespace HW2.Scripts
                 Debug.LogError("Failed to spawn player character!");
                 return;
             }
-
-            // Set player name
-            if (PlayerNameContainer.Instance &&
-                PlayerNameContainer.Instance.PlayersDictionary.TryGet(playerRef, out var playerName))
-            {
-                playerToSpawn.PlayerName = playerName;
-            }
-            else
-            {
-                playerToSpawn.PlayerName = playerRef.PlayerId.ToString();
-            }
-
-            playerToSpawn.MeshColor = characterColor;
+            
+            playerToSpawn.Color = characterColor;
         }
 
         private string ColorToString(Color color) =>
-            $"{color.r:F3},{color.g:F3},{color.b:F3},{color.a:F3}"; // Easier to Read
-
-        private void SetButtonsInteractable(bool interactable)
-        {
-            foreach (CharacterButton button in selectButtons)
-            {
-                if (button != null && button.gameObject != null)
-                {
-                    button.gameObject.SetActive(interactable);
-                }
-            }
-        }
+            $"{color.r:F3},{color.g:F3},{color.b:F3},{color.a:F3}";
     }
 }

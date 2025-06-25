@@ -9,12 +9,19 @@ namespace HW2.Scripts
 
         [Networked]
         [OnChangedRender(nameof(OnColorChanged))]
-        public Color MeshColor { get; set; }
+        public Color Color { get; set; }
 
-        [Networked]
-        [OnChangedRender(nameof(OnNameChanged))]
-        public NetworkString<_32> PlayerName { get; set; } // Idan You Can Take This For Your Chat 
+        public void OnColorChanged() => meshRenderer.material.color = Color;
+        
+        public override void Spawned()
+        {
+            NetworkObject parentObject = Runner.GetPlayerObject(Object.InputAuthority);
+            transform.SetParent(parentObject.transform);
+            
+            OnColorChanged();
+        }
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (!meshRenderer)
@@ -22,15 +29,6 @@ namespace HW2.Scripts
                 meshRenderer = GetComponent<MeshRenderer>();
             }
         }
-
-        public void OnColorChanged() => meshRenderer.material.color = MeshColor;
-
-        public void OnNameChanged() => gameObject.name = PlayerName.ToString();
-
-        public override void Spawned()
-        {
-            OnColorChanged();
-            OnNameChanged();
-        }
+        #endif
     }
 }
