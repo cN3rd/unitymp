@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace HW2.Scripts
 {
-    public class CreateRoomPopup : PopupBase
+    public class CreateRoomPopup : BasePanel
     {
         [Header("Popup-specific")]
         [SerializeField] private TMP_InputField roomNameInput;

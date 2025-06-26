@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HW2.Scripts
 {
-    public class ErrorPopup : PopupBase
+    public class ErrorPopup : BasePanel
     {
         [Header("Popup-specific")]
         [SerializeField]

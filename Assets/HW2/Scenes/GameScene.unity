@@ -1653,6 +1653,7 @@ GameObject:
   - component: {fileID: 1324735585}
   - component: {fileID: 1324735586}
   - component: {fileID: 1324735584}
+  - component: {fileID: 1324735587}
   m_Layer: 5
   m_Name: OptionsPanel
   m_TagString: Untagged
@@ -1727,6 +1728,21 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &1324735587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1324735582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91193fbba8964c929e6a2420f75d993c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvasGroup: {fileID: 1324735586}
+  dmButton: {fileID: 1226641904}
+  closeSessionButton: {fileID: 2026581899}
 --- !u!1 &1415020970
 GameObject:
   m_ObjectHideFlags: 0
@@ -2536,6 +2552,7 @@ GameObject:
   - component: {fileID: 8279413293857855255}
   - component: {fileID: 4669269440033145013}
   - component: {fileID: 8279413293857855256}
+  - component: {fileID: 8279413293857855257}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4626,8 +4643,24 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
+  - {fileID: 8279413293857855257}
   - {fileID: 8867595647653576725}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &8279413293857855257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 275704480944838649}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0da6132449714645af7a13d8af2bef65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  errorPopup: {fileID: 340730068}
+  characterSelectionPanel: {fileID: 8867595647653576725}
+  topPanel: {fileID: 1324735587}
 --- !u!1 &8512370590119199566
 GameObject:
   m_ObjectHideFlags: 0

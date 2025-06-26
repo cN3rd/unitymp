@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace HW2.Scripts
 {
-    public class PopupBase : MonoBehaviour
+    public class BasePanel : MonoBehaviour
     {
         [SerializeField] private CanvasGroup canvasGroup;
         private void Start() => HidePopup();

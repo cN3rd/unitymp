@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 namespace HW2.Scripts
 {
-    public class CharacterSelectionManager : NetworkBehaviour
+    public class CharacterSelectionPanel : NetworkBehaviour
     {
         [Header("HUD Stuff")]
         [SerializeField] private List<CharacterButton> selectButtons;
@@ -20,6 +22,8 @@ namespace HW2.Scripts
         private bool _hasSelectedCharacter;
         private NetworkRunner _runnerSession;
 
+        public event UnityAction<bool> OnCharacterSelected;
+        
         private void Start() =>
             _runnerSession = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
 
@@ -86,6 +90,7 @@ namespace HW2.Scripts
             
             _hasSelectedCharacter = true;
             characterSelectionUI?.SetActive(false);
+            OnCharacterSelected?.Invoke(Runner.IsSharedModeMasterClient);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
