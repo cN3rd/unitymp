@@ -1,0 +1,22 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+namespace HW2.Scripts
+{
+    public class GameOverNoticePopup : BasePanel
+    {
+        [Header("Popup-specific")]
+        [SerializeField] private GameManager manager;
+        [SerializeField] private Button closeButton;
+
+        private void OnEnable() => closeButton.onClick.AddListener(CloseButtonClicked);
+
+        private void OnDisable() => closeButton.onClick.RemoveListener(CloseButtonClicked);
+
+        private void CloseButtonClicked() => SceneManager.LoadScene("LobbyScene");
+
+        public new void ShowPopup() => base.ShowPopup();
+    }
+}
