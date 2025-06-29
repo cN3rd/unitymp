@@ -96,7 +96,7 @@ namespace HW2.Scripts.Testing
             Debug.Log($"Player joined. Total: {runner.SessionInfo.PlayerCount}/{maxPlayers}");
             
             // Load scene when all players have joined (only master client does this)
-            if (runner.SessionInfo.PlayerCount == maxPlayers && runner.IsSharedModeMasterClient)
+            if (runner.SessionInfo.PlayerCount == maxPlayers && runner.IsSharedModeMasterClient && runner.IsSceneAuthority)
             {
                 runner.LoadScene("GameScene");
             }
