@@ -64,7 +64,10 @@ namespace HW2.Scripts
 
         private void OnDestroy()
         {
-            CleanupAllConnections();
+            if (!_sessionRunner || !_sessionRunner.IsInSession)
+                CleanupSessionConnection();
+            CleanupLobbyConnection();
+            
             if (_playerNameContainer)
             {
                 _playerNameContainer.OnPlayerListChanged -= OnPlayerListChanged;
@@ -196,7 +199,8 @@ namespace HW2.Scripts
 
         private void HandleSessionPlayerJoined(PlayerRef player)
         {
-            /* Intentionally empty */
+            if (_sessionRunner.SessionInfo.MaxPlayers == _sessionRunner.SessionInfo.PlayerCount &&
+                _sessionRunner.IsSceneAuthority) _sessionRunner.LoadScene("GameScene");
         }
 
         private void HandleSessionPlayerLeft(PlayerRef player)
