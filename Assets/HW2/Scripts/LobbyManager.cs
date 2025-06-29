@@ -346,7 +346,7 @@ namespace HW2.Scripts
         }
 
         private void OnPlayerListChanged(List<string> playerList) =>
-            playerListUI.RefreshPlayerList(playerList);
+            playerListUI?.RefreshPlayerList(playerList);
 
         #endregion
 

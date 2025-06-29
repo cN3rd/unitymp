@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -11,10 +12,14 @@ namespace HW2.Scripts
 
         private readonly List<GameObject> _playerListItems = new();
 
+        private void OnDestroy() => ClearList();
+
         public void RefreshPlayerList(List<string> players)
         {
             ClearList();
 
+            if (!templateObject || !contentView) return;
+            
             foreach (string player in players)
             {
                 TextMeshProUGUI playerLabel = Instantiate(templateObject, contentView);
