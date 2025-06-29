@@ -1,32 +1,45 @@
+using System;
+using System.Collections.Generic;
 using Fusion;
+using Fusion.Sockets;
 using HW2.Scripts.Testing;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace HW2.Scripts
 {
-    public class GameManager : NetworkBehaviour
+    public class GameManager : NetworkBehaviour, IPlayerLeft
     {
         [SerializeField] private ErrorPopup errorPopup;
         [SerializeField] private GameOverNoticePopup gameOverNoticePopup;
         [SerializeField] private CharacterSelectionPanel characterSelectionPanel;
+        [SerializeField] private DirectMessageSendPanel dmSendPanel;
+        [SerializeField] private DirectMessageView dmView;
         [SerializeField] private TopPanelUI topPanel;
 
         private void Start()
         {
             characterSelectionPanel.OnCharacterSelected += topPanel.ShowTopPanel;
             topPanel.OnCloseSessionRequested += CloseSession;
+            topPanel.OnDirectMessageRequested += dmSendPanel.ShowPanel;
+            dmSendPanel.OnSendDirectMessage += OnSendDirectMessage;
         }
 
         public override void Spawned()
         {
-            if (HasStateAuthority)
-            {
-                Runner.SessionInfo.IsOpen = false;
-            }
             base.Spawned();
-            Runner.MakeDontDestroyOnLoad(this.gameObject);
+
+            if (HasStateAuthority)
+                Runner.SessionInfo.IsOpen = false;
+
+            Runner.MakeDontDestroyOnLoad(gameObject);
+            RPC_RefreshPlayers();
         }
+
+        public void PlayerLeft(PlayerRef player) => RPC_RefreshPlayers();
+
+        private void OnSendDirectMessage(PlayerRef receiverRef, string sender, string message) =>
+            RPC_DirectMessage(receiverRef, sender, message);
 
         private void CloseSession()
         {
@@ -35,7 +48,7 @@ namespace HW2.Scripts
                 RPC_CloseSession();
             }
         }
-        
+
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_CloseSession()
         {
@@ -43,12 +56,22 @@ namespace HW2.Scripts
             {
                 gameOverNoticePopup.ShowPopup();
                 await Awaitable.WaitForSecondsAsync(1);
-                
+
                 Runner.Despawn(Runner.GetPlayerObject(Runner.LocalPlayer));
                 await Runner.Shutdown(shutdownReason: ShutdownReason.GameClosed);
             }
 
             _ = DoAsync();
         }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_DirectMessage([RpcTarget] PlayerRef target, string sender, string message)
+        {
+            Debug.Log($"New DM: {sender}: {message}");
+            dmView.OnNewMessage(sender, message);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_RefreshPlayers() => dmSendPanel.UpdateData(Runner);
     }
 }
