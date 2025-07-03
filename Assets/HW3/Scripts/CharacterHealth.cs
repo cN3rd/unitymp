@@ -11,7 +11,7 @@ namespace HW3.Scripts
         [Networked]
         [OnChangedRender(nameof(OnHealthValueChanged))]
         public int CurrentHealth { get; set; } = 1;
-<
+
         public event Action<float> OnHealthChanged;
         public event Action OnDeath;
 

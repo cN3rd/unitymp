@@ -11,16 +11,6 @@ namespace HW3.Scripts
         [OnChangedRender(nameof(OnColorChanged))]
         public Color Color { get; set; }
 
-        public void OnColorChanged() => meshRenderer.material.color = Color;
-        
-        public override void Spawned()
-        {
-            NetworkObject parentObject = Runner.GetPlayerObject(Object.InputAuthority);
-            transform.SetParent(parentObject.transform);
-            
-            OnColorChanged();
-        }
-
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -29,6 +19,16 @@ namespace HW3.Scripts
                 meshRenderer = GetComponent<MeshRenderer>();
             }
         }
-        #endif
+#endif
+
+        public void OnColorChanged() => meshRenderer.material.color = Color;
+
+        public override void Spawned()
+        {
+            NetworkObject parentObject = Runner.GetPlayerObject(Object.InputAuthority);
+            transform.SetParent(parentObject.transform);
+
+            OnColorChanged();
+        }
     }
 }
