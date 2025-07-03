@@ -4,7 +4,7 @@ using System.Linq;
 using Fusion;
 using UnityEngine;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class PlayerNameContainer : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     {

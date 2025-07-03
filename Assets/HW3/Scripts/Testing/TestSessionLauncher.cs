@@ -5,7 +5,7 @@ using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 
-namespace HW2.Scripts.Testing
+namespace HW3.Scripts.Testing
 {
     public class TestLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {

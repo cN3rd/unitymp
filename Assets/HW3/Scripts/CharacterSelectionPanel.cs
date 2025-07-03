@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class CharacterSelectionPanel : NetworkBehaviour
     {

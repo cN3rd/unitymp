@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class CharacterButton : MonoBehaviour
     {

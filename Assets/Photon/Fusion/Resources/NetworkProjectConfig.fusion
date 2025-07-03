@@ -65,7 +65,7 @@
         "Assembly-CSharp-firstpass",
         "Fusion.Addons.Physics",
         "Fusion.Addons.FSM",
-        "HW2"
+        "HW3"
     ],
     "UseSerializableDictionary": true,
     "NullChecksForNetworkedProperties": true,

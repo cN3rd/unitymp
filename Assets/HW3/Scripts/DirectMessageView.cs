@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class DirectMessageView : MonoBehaviour
     {

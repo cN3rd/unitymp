@@ -4,7 +4,7 @@ using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class LobbyNetworkCallbackHandler : INetworkRunnerCallbacks
     {

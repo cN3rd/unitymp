@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Fusion;
-using Fusion.Sockets;
-using HW2.Scripts.Testing;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-namespace HW2.Scripts
+namespace HW3.Scripts
 {
     public class GameManager : NetworkBehaviour, IPlayerLeft
     {

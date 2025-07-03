@@ -1,9 +1,9 @@
-using Fusion;
 using System;
+using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace HW2.Scripts {
+namespace HW3.Scripts {
     public class CharacterMovement : NetworkBehaviour
     {
         [SerializeField] private float speed = 5f;

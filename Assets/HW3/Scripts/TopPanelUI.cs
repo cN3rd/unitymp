@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HW2.Scripts.Testing
+namespace HW3.Scripts
 {
     public class TopPanelUI : BasePanel
     {
