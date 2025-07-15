@@ -21,7 +21,8 @@ namespace HW3.Scripts
         [SerializeField] private Button joinLobbyButton;
         [SerializeField] private Button newRoomButton;
 
-        [Header("List view")] [SerializeField] private RectTransform listPanel;
+        [Header("List view")] 
+        [SerializeField] private RectTransform listPanel;
         [SerializeField] private GameObject listItemTemplate;
         [SerializeField] private TextMeshProUGUI statusText;
         private readonly List<GameObject> _roomButtons = new();
@@ -29,11 +30,11 @@ namespace HW3.Scripts
         public string GetCurrentLobbyName() => LobbyManagerUtils.GetLobbyName(lobbyDropdown.value);
         public string GetPlayerName() => playerNameInputField.text;
 
-        public void Start()
+        private void Start()
         {
-            joinLobbyButton.onClick.AddListener(OnJoinLobbyClicked);
-            newRoomButton.onClick.AddListener(OnNewRoomButtonClicked);
-            lobbyDropdown.onValueChanged.AddListener(OnLobbyDropdownValueChanged);
+            joinLobbyButton.onClick.AddListener(() => OnJoinLobbyClicked?.Invoke());
+            newRoomButton.onClick.AddListener(() => OnNewRoomButtonClicked?.Invoke());
+            lobbyDropdown.onValueChanged.AddListener(value => OnLobbyDropdownValueChanged?.Invoke(value));
         }
 
         public void UpdateUIState(LobbyState state, LobbyInfo lobbyInfo, List<SessionInfo> sessions,
@@ -65,7 +66,6 @@ namespace HW3.Scripts
                     statusText.gameObject.SetActive(true);
                     break;
                 default:
-                {
                     if (numSessions == 0)
                     {
                         statusText.text = "No rooms available. Click 'New Room' to create one.";
@@ -75,9 +75,7 @@ namespace HW3.Scripts
                     {
                         statusText.gameObject.SetActive(false);
                     }
-
                     break;
-                }
             }
         }
 
@@ -121,7 +119,7 @@ namespace HW3.Scripts
             if (currentSession.IsValid && session.Name == currentSession.Name)
             {
                 imageComponent.color = Color.green;
-                button.onClick.AddListener(OnDisconnectSession);
+                button.onClick.AddListener(() => OnDisconnectSession?.Invoke());
                 buttonText.text += " [DISCONNECT]";
             }
             else if (session.IsOpen && session.PlayerCount < session.MaxPlayers)

@@ -53,14 +53,10 @@ namespace HW3.Scripts
 
         private void OnDestroy()
         {
-            if (!_sessionRunner || !_sessionRunner.IsInSession)
-                CleanupSessionConnection();
-            CleanupLobbyConnection();
+            CleanupAllConnections();
 
             if (_playerNameContainer)
-            {
                 _playerNameContainer.OnPlayerListChanged -= OnPlayerListChanged;
-            }
         }
 
         #region Creation Operations
@@ -102,39 +98,25 @@ namespace HW3.Scripts
 
         private void CleanupLobbyConnection()
         {
-            if (_lobbyRunner != null)
-            {
-                if (_lobbyCallbackHandler != null)
-                {
-                    _lobbyRunner.RemoveCallbacks(_lobbyCallbackHandler);
-                    _lobbyCallbackHandler = null;
-                }
+            _lobbyRunner?.RemoveCallbacks(_lobbyCallbackHandler);
+            _lobbyCallbackHandler = null;
 
-                if (_lobbyRunner.gameObject)
-                {
-                    Destroy(_lobbyRunner.gameObject);
-                }
-
-                _lobbyRunner = null;
-            }
+            if (_lobbyRunner?.gameObject)
+                Destroy(_lobbyRunner.gameObject);
+            _lobbyRunner = null;
 
             _sessions.Clear();
         }
 
         private void CleanupSessionConnection()
         {
-            if (_sessionCallbackHandler != null)
-            {
-                _sessionRunner.RemoveCallbacks(_sessionCallbackHandler);
-                _sessionCallbackHandler = null;
-            }
-            
-            if (_sessionRunner?.gameObject)
-            {
-                Destroy(_sessionRunner.gameObject);
-                _sessionRunner = null;
-            }
+            _sessionRunner?.RemoveCallbacks(_sessionCallbackHandler);
+            _sessionCallbackHandler = null;
 
+            if (_sessionRunner?.gameObject)
+                Destroy(_sessionRunner.gameObject);
+
+            _sessionRunner = null;
             _playerNameContainer = null;
         }
 
@@ -158,6 +140,32 @@ namespace HW3.Scripts
 
         #endregion
 
+        private async Awaitable ExecuteNetworkOperation(
+            Func<Awaitable> operation,
+            string errorPrefix,
+            LobbyState? successState = null,
+            LobbyState? failureState = null,
+            Action onFailure = null)
+        {
+            try
+            {
+                await operation();
+                if (successState.HasValue)
+                    _lobbyState = successState.Value;
+            }
+            catch (Exception ex)
+            {
+                errorPopup.ShowError($"{errorPrefix}: {ex.Message}");
+                if (failureState.HasValue)
+                    _lobbyState = failureState.Value;
+                onFailure?.Invoke();
+            }
+            finally
+            {
+                RefreshUI();
+            }
+        }
+        
         #region Lobby Network Event Handlers
 
         private void HandleLobbySessionListUpdated(List<SessionInfo> sessionList)
@@ -199,30 +207,28 @@ namespace HW3.Scripts
 
         private async void JoinLobby()
         {
+            _lobbyState = LobbyState.ConnectingToLobby;
+            RefreshUI();
 
-                _lobbyState = LobbyState.ConnectingToLobby;
-                RefreshUI();
-
-                CleanupSessionConnection();
-                CleanupLobbyConnection();
-                CreateLobbyRunner();
-                StartGameResult result =
-                    await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom,
+            await ExecuteNetworkOperation(
+                operation: async () =>
+                {
+                    CleanupSessionConnection();
+                    CleanupLobbyConnection();
+                    CreateLobbyRunner();
+                    var result = await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom,
                         lobbyManagerUI.GetCurrentLobbyName());
 
-                _lobbyState = LobbyState.InLobby;
-
-                if (!result.Ok)
-                {
-                    _lobbyState = LobbyState.NotConnected;
-                    errorPopup.ShowError($"Failed to join lobby: {result.ErrorMessage}");
-                    CleanupLobbyConnection();
-                }
-
-
-            RefreshUI();
+                    if (!result.Ok)
+                        throw new Exception(result.ErrorMessage);
+                },
+                errorPrefix: "Failed to join lobby",
+                successState: LobbyState.InLobby,
+                failureState: LobbyState.NotConnected,
+                onFailure: CleanupLobbyConnection
+            );
         }
-        
+
         private PlayerData SpawnPlayerData()
         {
             NetworkObject playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
@@ -233,75 +239,67 @@ namespace HW3.Scripts
 
             return playerData;
         }
-        
+
         private async void CreateRoom(CreateRoomDetails details)
         {
-            try
-            {
-                _lobbyState = LobbyState.ConnectingToSession;
-                CleanupSessionConnection();
-                CreateSessionRunner();
-
-                StartGameResult result = await _sessionRunner.StartGame(new StartGameArgs
-                {
-                    GameMode = GameMode.Shared,
-                    SessionName = details.name,
-                    PlayerCount = details.numPlayers,
-                    CustomLobbyName = _lobbyRunner?.LobbyInfo.IsValid == true
-                        ? _lobbyRunner.LobbyInfo.Name
-                        : lobbyManagerUI.GetCurrentLobbyName()
-                });
-                _lobbyState = LobbyState.CreatingNCP;
-
-                if (!result.Ok)
-                {
-                    throw new Exception("Failed to create room");
-                }
-
-                await _sessionRunner.SpawnAsync(nameContainerPrefab);
-                _lobbyState = LobbyState.InSession;
-            }
-            catch (Exception ex)
-            {
-                errorPopup.ShowError($"Failed to create room: {ex.Message}");
-                CleanupSessionConnection();
-                _lobbyState = LobbyState.InLobby;
-            }
-
+            _lobbyState = LobbyState.ConnectingToSession;
             RefreshUI();
+
+            await ExecuteNetworkOperation(
+                operation: async () =>
+                {
+                    CleanupSessionConnection();
+                    CreateSessionRunner();
+
+                    var result = await _sessionRunner.StartGame(new StartGameArgs
+                    {
+                        GameMode = GameMode.Shared,
+                        SessionName = details.name,
+                        PlayerCount = details.numPlayers,
+                        CustomLobbyName = _lobbyRunner?.LobbyInfo.IsValid == true
+                            ? _lobbyRunner.LobbyInfo.Name
+                            : lobbyManagerUI.GetCurrentLobbyName()
+                    });
+
+                    if (!result.Ok)
+                        throw new Exception("Failed to create room");
+
+                    _lobbyState = LobbyState.CreatingNCP;
+                    await _sessionRunner.SpawnAsync(nameContainerPrefab);
+                },
+                errorPrefix: "Failed to create room",
+                successState: LobbyState.InSession,
+                failureState: LobbyState.InLobby,
+                onFailure: CleanupSessionConnection
+            );
         }
 
-        
         private async void JoinSession(SessionInfo session)
         {
-            try
-            {
-                _lobbyState = LobbyState.InSession;
-                CleanupSessionConnection();
-                CreateSessionRunner();
-
-                StartGameResult result = await _sessionRunner.StartGame(new StartGameArgs
-                {
-                    GameMode = GameMode.Shared,
-                    SessionName = session.Name,
-                    CustomLobbyName = _lobbyRunner.LobbyInfo.Name
-                });
-
-                if (!result.Ok)
-                {
-                    throw new Exception(result.ErrorMessage);
-                }
-                
-                _lobbyState = LobbyState.InSession;
-            }
-            catch (Exception ex)
-            {
-                errorPopup.ShowError($"Failed to join session: {ex.Message}");
-                CleanupSessionConnection();
-                _lobbyState = LobbyState.InLobby;
-            }
-
+            _lobbyState = LobbyState.ConnectingToSession;
             RefreshUI();
+
+            await ExecuteNetworkOperation(
+                operation: async () =>
+                {
+                    CleanupSessionConnection();
+                    CreateSessionRunner();
+
+                    var result = await _sessionRunner.StartGame(new StartGameArgs
+                    {
+                        GameMode = GameMode.Shared,
+                        SessionName = session.Name,
+                        CustomLobbyName = _lobbyRunner.LobbyInfo.Name
+                    });
+
+                    if (!result.Ok)
+                        throw new Exception(result.ErrorMessage);
+                },
+                errorPrefix: "Failed to join session",
+                successState: LobbyState.InSession,
+                failureState: LobbyState.InLobby,
+                onFailure: CleanupSessionConnection
+            );
         }
 
         private void DisconnectSession() => ShutdownSessionSafely();
@@ -318,11 +316,11 @@ namespace HW3.Scripts
         }
 
         private void OnPlayerListChanged(List<string> playerList) =>
-            playerListUI?.RefreshPlayerList(playerList);
-        
+            playerListUI.RefreshPlayerList(playerList);
+
         private void RefreshUI() => lobbyManagerUI.UpdateUIState(_lobbyState,
             _lobbyRunner?.LobbyInfo, _sessions, _sessionRunner?.SessionInfo);
-        
+
         #endregion
     }
 }
