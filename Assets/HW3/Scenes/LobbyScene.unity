@@ -254,6 +254,7 @@ GameObject:
   - component: {fileID: 133161405}
   - component: {fileID: 133161404}
   - component: {fileID: 133161403}
+  - component: {fileID: 133161407}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -347,6 +348,25 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &133161407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 133161402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccf1bdedba5a46588e27bf967ea17444, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerNameInputField: {fileID: 1735737027}
+  lobbyDropdown: {fileID: 1379421195}
+  joinLobbyButton: {fileID: 2113786113}
+  newRoomButton: {fileID: 499035654}
+  listPanel: {fileID: 1664221019}
+  listItemTemplate: {fileID: 1882193104}
+  statusText: {fileID: 214508964}
 --- !u!1 &214508962
 GameObject:
   m_ObjectHideFlags: 0
@@ -5126,9 +5146,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1301523057}
   - component: {fileID: 1301523058}
-  - component: {fileID: 1301523059}
   m_Layer: 0
-  m_Name: Fusion Stuff
+  m_Name: Lobby Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5163,31 +5182,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runnerPrefab: {fileID: 8112399412608552033, guid: 975db60bb40ac284f82883b61688b30b, type: 3}
   playerDataPrefab: {fileID: 8220138658691515704, guid: b26c577b073f17e46a82e8293b55e4cd, type: 3}
-  playerNameInputField: {fileID: 1735737027}
-  lobbyDropdown: {fileID: 1379421195}
-  joinLobbyButton: {fileID: 2113786113}
-  newRoomButton: {fileID: 499035654}
-  listPanel: {fileID: 1664221019}
-  listItemTemplate: {fileID: 1882193104}
-  statusText: {fileID: 214508964}
+  lobbyManagerUI: {fileID: 133161407}
   errorPopup: {fileID: 616887731}
   createRoomPopup: {fileID: 1424864839}
   playerListUI: {fileID: 1284285151}
   nameContainerPrefab: {fileID: 6944891918546473175, guid: b938c764e3915c94dabe75f124c6e095, type: 3}
-  characterSelectionManagerPrefab: {fileID: 8661931040354632680, guid: 6667794bf3282a244a19dfc6f0b2e726, type: 3}
---- !u!114 &1301523059
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1301523055}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fa23665024243d188549ba6dd1f6387, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  usernameInputField: {fileID: 1735737027}
 --- !u!1 &1379421193
 GameObject:
   m_ObjectHideFlags: 0
@@ -6949,6 +6948,7 @@ GameObject:
   - component: {fileID: 1735737028}
   - component: {fileID: 1735737027}
   - component: {fileID: 1735737026}
+  - component: {fileID: 1735737030}
   m_Layer: 5
   m_Name: PlayerName
   m_TagString: Untagged
@@ -7135,6 +7135,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735737024}
   m_CullTransparentMesh: 1
+--- !u!114 &1735737030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735737024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fa23665024243d188549ba6dd1f6387, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usernameInputField: {fileID: 1735737027}
 --- !u!1 &1764697918
 GameObject:
   m_ObjectHideFlags: 0

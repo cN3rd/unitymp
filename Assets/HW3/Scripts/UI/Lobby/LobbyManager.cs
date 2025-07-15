@@ -2,36 +2,16 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace HW3.Scripts
 {
-    public enum LobbyState
-    {
-        NotConnected,
-        ConnectingToLobby,
-        InLobby,
-        ConnectingToSession,
-        CreatingNCP,
-        InSession
-    }
-    
     public class LobbyManager : MonoBehaviour
     {
         [SerializeField] private NetworkRunner runnerPrefab;
         [SerializeField] private GameObject playerDataPrefab;
 
-        [Header("Top view GUI")]
-        [SerializeField] private TMP_InputField playerNameInputField;
-        [SerializeField] private TMP_Dropdown lobbyDropdown;
-        [SerializeField] private Button joinLobbyButton;
-        [SerializeField] private Button newRoomButton;
-
-        [Header("List view")] [SerializeField] private RectTransform listPanel;
-        [SerializeField] private GameObject listItemTemplate;
-        [SerializeField] private TextMeshProUGUI statusText;
+        [SerializeField] private LobbyManagerUI lobbyManagerUI;
 
         [Header("Popups")]
         [SerializeField] private ErrorPopup errorPopup;
@@ -40,8 +20,7 @@ namespace HW3.Scripts
         [Header("Name list")]
         [SerializeField] private PlayerListUI playerListUI;
         [SerializeField] private GameObject nameContainerPrefab;
-        
-        private readonly List<GameObject> _roomButtons = new();
+
         private LobbyState _lobbyState = LobbyState.NotConnected;
 
         // lobby things
@@ -56,16 +35,20 @@ namespace HW3.Scripts
 
         public static LobbyManager Instance { get; private set; }
 
-        public void Start()
+        private void Awake()
+        {
+            lobbyManagerUI.OnJoinSession += JoinSession;
+            lobbyManagerUI.OnDisconnectSession += DisconnectSession;
+            lobbyManagerUI.OnJoinLobbyClicked += JoinLobby;
+            lobbyManagerUI.OnNewRoomButtonClicked += createRoomPopup.ShowPopup;
+            lobbyManagerUI.OnLobbyDropdownValueChanged += _ => RefreshUI();
+            createRoomPopup.OnCreateRoom += CreateRoom;
+        }
+
+        private void Start()
         {
             Instance = this;
-
-            joinLobbyButton.onClick.AddListener(OnJoinLobbyClicked);
-            newRoomButton.onClick.AddListener(OnNewRoomButtonClicked);
-            lobbyDropdown.onValueChanged.AddListener(OnLobbyDropdownValueChanged);
-            createRoomPopup.OnCreateRoom += CreateRoom;
-
-            UpdateUIState();
+            RefreshUI();
         }
 
         private void OnDestroy()
@@ -73,7 +56,7 @@ namespace HW3.Scripts
             if (!_sessionRunner || !_sessionRunner.IsInSession)
                 CleanupSessionConnection();
             CleanupLobbyConnection();
-            
+
             if (_playerNameContainer)
             {
                 _playerNameContainer.OnPlayerListChanged -= OnPlayerListChanged;
@@ -140,19 +123,15 @@ namespace HW3.Scripts
 
         private void CleanupSessionConnection()
         {
-            if (_sessionRunner != null)
+            if (_sessionCallbackHandler != null)
             {
-                if (_sessionCallbackHandler != null)
-                {
-                    _sessionRunner.RemoveCallbacks(_sessionCallbackHandler);
-                    _sessionCallbackHandler = null;
-                }
-
-                if (_sessionRunner.gameObject)
-                {
-                    Destroy(_sessionRunner.gameObject);
-                }
-
+                _sessionRunner.RemoveCallbacks(_sessionCallbackHandler);
+                _sessionCallbackHandler = null;
+            }
+            
+            if (_sessionRunner?.gameObject)
+            {
+                Destroy(_sessionRunner.gameObject);
                 _sessionRunner = null;
             }
 
@@ -167,13 +146,13 @@ namespace HW3.Scripts
 
                 await _sessionRunner.Shutdown(shutdownReason: ShutdownReason.Ok);
                 CleanupSessionConnection();
-                UpdateUIState();
+                RefreshUI();
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError(ex.ToString());
                 CleanupSessionConnection();
-                UpdateUIState();
+                RefreshUI();
             }
         }
 
@@ -184,24 +163,24 @@ namespace HW3.Scripts
         private void HandleLobbySessionListUpdated(List<SessionInfo> sessionList)
         {
             _sessions = new List<SessionInfo>(sessionList);
-            UpdateUIState();
+            RefreshUI();
         }
 
-        private void HandleLobbyConnected() => UpdateUIState();
+        private void HandleLobbyConnected() => RefreshUI();
 
         private void HandleLobbyDisconnected(NetDisconnectReason reason)
         {
             _sessions.Clear();
-            UpdateUIState();
+            RefreshUI();
         }
 
         #endregion
 
         #region Session Network Event Handlers
 
-        private void HandleSessionConnected() => UpdateUIState();
+        private void HandleSessionConnected() => RefreshUI();
 
-        private void HandleSessionDisconnected(NetDisconnectReason reason) => UpdateUIState();
+        private void HandleSessionDisconnected(NetDisconnectReason reason) => RefreshUI();
 
         private void HandleSessionPlayerJoined(PlayerRef player)
         {
@@ -218,37 +197,43 @@ namespace HW3.Scripts
 
         #region Network Operations
 
-        private async void OnJoinLobbyClicked()
+        private async void JoinLobby()
         {
-            try
-            {
+
                 _lobbyState = LobbyState.ConnectingToLobby;
-                UpdateUIState();
+                RefreshUI();
 
                 CleanupSessionConnection();
                 CleanupLobbyConnection();
                 CreateLobbyRunner();
                 StartGameResult result =
-                    await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
+                    await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom,
+                        lobbyManagerUI.GetCurrentLobbyName());
 
                 _lobbyState = LobbyState.InLobby;
 
                 if (!result.Ok)
                 {
-                    errorPopup.ShowError(result.ErrorMessage);
+                    _lobbyState = LobbyState.NotConnected;
+                    errorPopup.ShowError($"Failed to join lobby: {result.ErrorMessage}");
                     CleanupLobbyConnection();
                 }
-            }
-            catch (Exception ex)
-            {
-                _lobbyState = LobbyState.NotConnected;
-                errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
-                CleanupLobbyConnection();
-            }
 
-            UpdateUIState();
+
+            RefreshUI();
         }
+        
+        private PlayerData SpawnPlayerData()
+        {
+            NetworkObject playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
+            _sessionRunner.SetPlayerObject(_sessionRunner.LocalPlayer, playerDataObject);
 
+            PlayerData playerData = playerDataObject.GetComponent<PlayerData>();
+            playerData.Nickname = lobbyManagerUI.GetPlayerName();
+
+            return playerData;
+        }
+        
         private async void CreateRoom(CreateRoomDetails details)
         {
             try
@@ -264,7 +249,7 @@ namespace HW3.Scripts
                     PlayerCount = details.numPlayers,
                     CustomLobbyName = _lobbyRunner?.LobbyInfo.IsValid == true
                         ? _lobbyRunner.LobbyInfo.Name
-                        : GetCurrentLobbyName()
+                        : lobbyManagerUI.GetCurrentLobbyName()
                 });
                 _lobbyState = LobbyState.CreatingNCP;
 
@@ -283,20 +268,10 @@ namespace HW3.Scripts
                 _lobbyState = LobbyState.InLobby;
             }
 
-            UpdateUIState();
+            RefreshUI();
         }
 
-        private PlayerData SpawnPlayerData()
-        {
-            NetworkObject playerDataObject = _sessionRunner.Spawn(playerDataPrefab);
-            _sessionRunner.SetPlayerObject(_sessionRunner.LocalPlayer, playerDataObject);
-
-            PlayerData playerData = playerDataObject.GetComponent<PlayerData>();
-            playerData.Nickname = playerNameInputField.text;
-
-            return playerData;
-        }
-
+        
         private async void JoinSession(SessionInfo session)
         {
             try
@@ -316,7 +291,7 @@ namespace HW3.Scripts
                 {
                     throw new Exception(result.ErrorMessage);
                 }
-
+                
                 _lobbyState = LobbyState.InSession;
             }
             catch (Exception ex)
@@ -326,7 +301,7 @@ namespace HW3.Scripts
                 _lobbyState = LobbyState.InLobby;
             }
 
-            UpdateUIState();
+            RefreshUI();
         }
 
         private void DisconnectSession() => ShutdownSessionSafely();
@@ -334,10 +309,6 @@ namespace HW3.Scripts
         #endregion
 
         #region UI Event Handlers
-
-        private void OnNewRoomButtonClicked() => createRoomPopup.ShowPopup();
-
-        private void OnLobbyDropdownValueChanged(int newValue) => UpdateUIState();
 
         public void SetPlayerNameContainer(PlayerNameContainer pnc)
         {
@@ -348,112 +319,10 @@ namespace HW3.Scripts
 
         private void OnPlayerListChanged(List<string> playerList) =>
             playerListUI?.RefreshPlayerList(playerList);
-
-        #endregion
-
-        #region UI Updates
-
-        private void UpdateUIState()
-        {
-            bool isLobbyConnected = _lobbyRunner?.LobbyInfo.IsValid == true;
-            bool isCurrentLobby =
-                isLobbyConnected && _lobbyRunner.LobbyInfo.Name == GetCurrentLobbyName();
-
-            bool isInSession = _sessionRunner?.IsRunning == true;
-
-            UpdateButtonStateUI(isCurrentLobby, isInSession);
-            UpdateListTextUI(isLobbyConnected);
-            UpdateListUI(isLobbyConnected, isInSession);
-        }
-
-        private void UpdateListTextUI(bool isLobbyConnected)
-        {
-            if (_lobbyState == LobbyState.ConnectingToLobby)
-            {
-                statusText.text = "Joining lobby...";
-                statusText.gameObject.SetActive(true);
-            }
-            else if (_lobbyState == LobbyState.ConnectingToSession)
-            {
-                statusText.text = "Joining room...";
-                statusText.gameObject.SetActive(true);
-            }
-            else if (!isLobbyConnected)
-            {
-                statusText.text = "Select a lobby and click 'Join Lobby' to see available rooms";
-                statusText.gameObject.SetActive(true);
-            }
-            else if (_sessions.Count == 0)
-            {
-                statusText.text = "No rooms available. Click 'New Room' to create one.";
-                statusText.gameObject.SetActive(true);
-            }
-            else
-            {
-                statusText.gameObject.SetActive(false);
-            }
-        }
-
-        private void UpdateButtonStateUI(bool isCurrentLobby, bool isInSession)
-        {
-            newRoomButton.interactable = isCurrentLobby && !isInSession;
-            joinLobbyButton.interactable =
-                _lobbyState is not (LobbyState.ConnectingToLobby or LobbyState.ConnectingToSession) && (_lobbyRunner == null || !isCurrentLobby);
-        }
-
-        private void UpdateListUI(bool isLobbyConnected, bool isInSession)
-        {
-            foreach (GameObject button in _roomButtons)
-            {
-                if (button) Destroy(button);
-            }
-
-            _roomButtons.Clear();
-
-            if (!isLobbyConnected) return;
-
-            foreach (SessionInfo session in _sessions)
-            {
-                GenerateButtonUI(session, isInSession);
-            }
-        }
-
-        private void GenerateButtonUI(SessionInfo session, bool isInSession)
-        {
-            GameObject sessionObject = Instantiate(listItemTemplate, listPanel);
-            sessionObject.SetActive(true);
-
-            TextMeshProUGUI buttonText = sessionObject.GetComponentInChildren<TextMeshProUGUI>();
-            Image imageComponent = sessionObject.GetComponent<Image>();
-            Button button = sessionObject.GetComponent<Button>();
-
-            buttonText.text = $"{session.Name} ({session.PlayerCount}/{session.MaxPlayers})";
-
-            if (isInSession && session.Name == _sessionRunner.SessionInfo?.Name)
-            {
-                imageComponent.color = Color.green;
-                button.onClick.AddListener(DisconnectSession);
-                buttonText.text += " [DISCONNECT]";
-            }
-            else if (session.IsOpen && session.PlayerCount < session.MaxPlayers)
-            {
-                button.onClick.AddListener(() => JoinSession(session));
-            }
-            else
-            {
-                button.interactable = false;
-            }
-
-            _roomButtons.Add(sessionObject);
-        }
-
-        #endregion
-
-        #region Utility Methods
-
-        private string GetLobbyName(int option) => $"lobby{option}";
-        private string GetCurrentLobbyName() => GetLobbyName(lobbyDropdown.value);
-
+        
+        private void RefreshUI() => lobbyManagerUI.UpdateUIState(_lobbyState,
+            _lobbyRunner?.LobbyInfo, _sessions, _sessionRunner?.SessionInfo);
+        
         #endregion
     }
 }
