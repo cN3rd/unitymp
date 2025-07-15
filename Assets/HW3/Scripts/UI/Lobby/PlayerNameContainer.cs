@@ -15,8 +15,6 @@ namespace HW3.Scripts
         [OnChangedRender(nameof(OnPlayerDictionaryChanged))]
         private NetworkDictionary<PlayerRef, NetworkString<_32>> Players => default;
 
-        public NetworkDictionary<PlayerRef, NetworkString<_32>> PlayersDictionary => Players;
-
         private void Awake()
         {
             if (Instance == null) Instance = this;
