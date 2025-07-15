@@ -8,6 +8,16 @@ using UnityEngine.UI;
 
 namespace HW3.Scripts
 {
+    public enum LobbyState
+    {
+        NotConnected,
+        ConnectingToLobby,
+        InLobby,
+        ConnectingToSession,
+        CreatingNCP,
+        InSession
+    }
+    
     public class LobbyManager : MonoBehaviour
     {
         [SerializeField] private NetworkRunner runnerPrefab;
@@ -32,11 +42,7 @@ namespace HW3.Scripts
         [SerializeField] private GameObject nameContainerPrefab;
         
         private readonly List<GameObject> _roomButtons = new();
-
-        // state tracking
-        private bool _canEnableJoinLobbyButton = true;
-        private bool _isJoiningLobby;
-        private bool _isJoiningSession;
+        private LobbyState _lobbyState = LobbyState.NotConnected;
 
         // lobby things
         private LobbyNetworkCallbackHandler _lobbyCallbackHandler;
@@ -216,8 +222,7 @@ namespace HW3.Scripts
         {
             try
             {
-                _canEnableJoinLobbyButton = false;
-                _isJoiningLobby = true;
+                _lobbyState = LobbyState.ConnectingToLobby;
                 UpdateUIState();
 
                 CleanupSessionConnection();
@@ -226,8 +231,7 @@ namespace HW3.Scripts
                 StartGameResult result =
                     await _lobbyRunner.JoinSessionLobby(SessionLobby.Custom, GetCurrentLobbyName());
 
-                _isJoiningLobby = false;
-                _canEnableJoinLobbyButton = true;
+                _lobbyState = LobbyState.InLobby;
 
                 if (!result.Ok)
                 {
@@ -237,8 +241,7 @@ namespace HW3.Scripts
             }
             catch (Exception ex)
             {
-                _isJoiningLobby = false;
-                _canEnableJoinLobbyButton = true;
+                _lobbyState = LobbyState.NotConnected;
                 errorPopup.ShowError($"Failed to join lobby: {ex.Message}");
                 CleanupLobbyConnection();
             }
@@ -250,7 +253,7 @@ namespace HW3.Scripts
         {
             try
             {
-                _isJoiningSession = true;
+                _lobbyState = LobbyState.ConnectingToSession;
                 CleanupSessionConnection();
                 CreateSessionRunner();
 
@@ -263,22 +266,21 @@ namespace HW3.Scripts
                         ? _lobbyRunner.LobbyInfo.Name
                         : GetCurrentLobbyName()
                 });
+                _lobbyState = LobbyState.CreatingNCP;
 
                 if (!result.Ok)
                 {
-                    errorPopup.ShowError(result.ErrorMessage);
-                    CleanupSessionConnection();
-                    return;
+                    throw new Exception("Failed to create room");
                 }
 
                 await _sessionRunner.SpawnAsync(nameContainerPrefab);
-                _isJoiningSession = false;
+                _lobbyState = LobbyState.InSession;
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError($"Failed to create room: {ex.Message}");
                 CleanupSessionConnection();
-                _isJoiningSession = false;
+                _lobbyState = LobbyState.InLobby;
             }
 
             UpdateUIState();
@@ -299,7 +301,7 @@ namespace HW3.Scripts
         {
             try
             {
-                _isJoiningSession = true;
+                _lobbyState = LobbyState.InSession;
                 CleanupSessionConnection();
                 CreateSessionRunner();
 
@@ -312,17 +314,16 @@ namespace HW3.Scripts
 
                 if (!result.Ok)
                 {
-                    errorPopup.ShowError(result.ErrorMessage);
-                    CleanupSessionConnection();
+                    throw new Exception(result.ErrorMessage);
                 }
-                
-                _isJoiningSession = false;
+
+                _lobbyState = LobbyState.InSession;
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError($"Failed to join session: {ex.Message}");
                 CleanupSessionConnection();
-                _isJoiningSession = false;
+                _lobbyState = LobbyState.InLobby;
             }
 
             UpdateUIState();
@@ -367,12 +368,12 @@ namespace HW3.Scripts
 
         private void UpdateListTextUI(bool isLobbyConnected)
         {
-            if (_isJoiningLobby)
+            if (_lobbyState == LobbyState.ConnectingToLobby)
             {
                 statusText.text = "Joining lobby...";
                 statusText.gameObject.SetActive(true);
             }
-            else if (_isJoiningSession)
+            else if (_lobbyState == LobbyState.ConnectingToSession)
             {
                 statusText.text = "Joining room...";
                 statusText.gameObject.SetActive(true);
@@ -397,7 +398,7 @@ namespace HW3.Scripts
         {
             newRoomButton.interactable = isCurrentLobby && !isInSession;
             joinLobbyButton.interactable =
-                _canEnableJoinLobbyButton && (_lobbyRunner == null || !isCurrentLobby);
+                _lobbyState is not (LobbyState.ConnectingToLobby or LobbyState.ConnectingToSession) && (_lobbyRunner == null || !isCurrentLobby);
         }
 
         private void UpdateListUI(bool isLobbyConnected, bool isInSession)
