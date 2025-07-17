@@ -193,7 +193,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2117412811378653449}
-  - component: {fileID: 3841095222075102713}
   m_Layer: 0
   m_Name: Body Parts Visuals
   m_TagString: Player
@@ -219,23 +218,6 @@ Transform:
   - {fileID: 4659721170957004703}
   m_Father: {fileID: 7689428033868361072}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3841095222075102713
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5330715750677338849}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e538e2d2d709d564ca983d4133e5aa64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animators:
-  - {fileID: 4752344392983302904}
-  - {fileID: 5276864485363398764}
-  - {fileID: 2482488326000267633}
-  - {fileID: 3539558482626334023}
 --- !u!1 &6419866483513710162
 GameObject:
   m_ObjectHideFlags: 0
@@ -448,8 +430,8 @@ GameObject:
   - component: {fileID: 1950513403590599764}
   - component: {fileID: 9220319513829177199}
   - component: {fileID: -4740913451284688599}
-  - component: {fileID: 3414242446780763964}
   - component: {fileID: 2694867271307864192}
+  - component: {fileID: 2563038793312152607}
   - component: {fileID: 902978367314579378}
   - component: {fileID: 5219053585148045728}
   m_Layer: 0
@@ -498,7 +480,6 @@ MonoBehaviour:
   - {fileID: 1950513403590599764}
   - {fileID: 9220319513829177199}
   - {fileID: -4740913451284688599}
-  - {fileID: 3414242446780763964}
   - {fileID: 2694867271307864192}
   - {fileID: 764958807573920725}
   - {fileID: 571531975472989750}
@@ -576,21 +557,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   _CurrentHealth: 1
---- !u!114 &3414242446780763964
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8152202383864331257}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9d55147dc7e9da4bbfc1525633b3305, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  characterInput: {fileID: -6926492094626481438}
-  characterVisualController: {fileID: 3841095222075102713}
-  characterHealth: {fileID: -4740913451284688599}
 --- !u!114 &2694867271307864192
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,6 +572,25 @@ MonoBehaviour:
   input: {fileID: -6926492094626481438}
   projectile: {fileID: 2805712856840356380, guid: cab653291adaaf045bee8d2fd42d202a, type: 3}
   projectileSpawnPoint: {fileID: 3567414628867378721}
+--- !u!114 &2563038793312152607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8152202383864331257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e538e2d2d709d564ca983d4133e5aa64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterInput: {fileID: -6926492094626481438}
+  characterHealth: {fileID: -4740913451284688599}
+  animators:
+  - {fileID: 4752344392983302904}
+  - {fileID: 5276864485363398764}
+  - {fileID: 2482488326000267633}
+  - {fileID: 3539558482626334023}
 --- !u!136 &902978367314579378
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -931,8 +916,8 @@ MonoBehaviour:
   Animator: {fileID: 4752344392983302904}
   ApplyTiming: 2
   SyncSettings: 79
-  StateHashes: 00000000a1609f62d8aa0cc413a2de07d1d01fa5
-  TriggerHashes: 00000000a1609f62
+  StateHashes: 00000000a1609f62d8aa0cc413a2de07d1d01fa58ea039bc500b78df
+  TriggerHashes: 00000000a1609f620d286c40
   TotalWords: 2
 --- !u!4 &2062624454525983239 stripped
 Transform:
@@ -1029,8 +1014,8 @@ MonoBehaviour:
   Animator: {fileID: 5276864485363398764}
   ApplyTiming: 2
   SyncSettings: 79
-  StateHashes: 00000000a1609f62d8aa0cc413a2de07d1d01fa5
-  TriggerHashes: 00000000a1609f62
+  StateHashes: 00000000a1609f62d8aa0cc413a2de07d1d01fa58ea039bc500b78df
+  TriggerHashes: 00000000a1609f620d286c40
   TotalWords: 2
 --- !u!95 &5276864485363398764 stripped
 Animator:

@@ -1,10 +1,28 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
 namespace HW3.Scripts
 {
-    public class CharacterVisualController : MonoBehaviour
+    public class CharacterAnimationController : MonoBehaviour
     {
+        [SerializeField] private CharacterInput characterInput;
+        [SerializeField] private CharacterHealth characterHealth;
+
+        private void Awake()
+        {
+            characterInput.OnMove += PlayWalkAnimation;
+            characterInput.OnAttack += PlayAttackAnimation;
+            characterHealth.OnTakingDamage += PlayOnHitAnimation;
+        }
+
+        private void OnDestroy()
+        {
+            characterInput.OnMove -= PlayWalkAnimation;
+            characterInput.OnAttack -= PlayAttackAnimation;
+            characterHealth.OnTakingDamage -= PlayOnHitAnimation;
+        }
+
         [SerializeField] private List<Animator> animators;
 
         private const string AnimationTriggerIdle = "Idle";
