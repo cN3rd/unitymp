@@ -9,7 +9,7 @@ namespace HW3.Scripts
         [SerializeField] private float lifetime = 10f;
         [SerializeField] private GameObject hitFxPrefab;
 
-        [Networked] private TickTimer _lifetimeTimer { get; set; }
+        [Networked] private TickTimer LifetimeTimer { get; set; }
 
         private const string PlayerTag = "Player";
 
@@ -18,7 +18,7 @@ namespace HW3.Scripts
             base.Spawned();
             if (!Object.HasStateAuthority) return;
             
-            _lifetimeTimer = TickTimer.CreateFromSeconds(Runner, lifetime);
+            LifetimeTimer = TickTimer.CreateFromSeconds(Runner, lifetime);
         }
 
         public override void FixedUpdateNetwork()
@@ -27,7 +27,7 @@ namespace HW3.Scripts
             if (!HasStateAuthority) return;
 
             transform.Translate(transform.forward * speed * Runner.DeltaTime);
-            if (_lifetimeTimer.Expired(Runner))
+            if (LifetimeTimer.Expired(Runner))
             {
                 Runner.Despawn(Object);
             }

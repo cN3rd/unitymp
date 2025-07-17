@@ -8,7 +8,7 @@ namespace HW3.Scripts
         [SerializeField] private CharacterHealth healthComponent;
         [SerializeField] private Slider healthSlider;
 
-        void Awake() => healthComponent.OnHealthChanged += HealthChanged;
+        private void Awake() => healthComponent.OnHealthChanged += HealthChanged;
 
         private void HealthChanged(float newFraction) => healthSlider.value = newFraction;
     }

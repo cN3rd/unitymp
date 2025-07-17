@@ -6,7 +6,7 @@ namespace HW3.Scripts
         ConnectingToLobby,
         InLobby,
         ConnectingToSession,
-        CreatingNCP,
+        CreatingNcp,
         InSession
     }
 

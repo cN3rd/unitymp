@@ -28,5 +28,5 @@ namespace HW3.Scripts
         }
     }
 
-    public record CreateRoomDetails(string name, int numPlayers);
+    public record CreateRoomDetails(string Name, int NumPlayers);
 }

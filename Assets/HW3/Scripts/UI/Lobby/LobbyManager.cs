@@ -254,8 +254,8 @@ namespace HW3.Scripts
                     var result = await _sessionRunner.StartGame(new StartGameArgs
                     {
                         GameMode = GameMode.Shared,
-                        SessionName = details.name,
-                        PlayerCount = details.numPlayers,
+                        SessionName = details.Name,
+                        PlayerCount = details.NumPlayers,
                         CustomLobbyName = _lobbyRunner?.LobbyInfo.IsValid == true
                             ? _lobbyRunner.LobbyInfo.Name
                             : lobbyManagerUI.GetCurrentLobbyName()
@@ -264,7 +264,7 @@ namespace HW3.Scripts
                     if (!result.Ok)
                         throw new Exception("Failed to create room");
 
-                    _lobbyState = LobbyState.CreatingNCP;
+                    _lobbyState = LobbyState.CreatingNcp;
                     await _sessionRunner.SpawnAsync(nameContainerPrefab);
                 },
                 errorPrefix: "Failed to create room",

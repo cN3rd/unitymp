@@ -5,28 +5,20 @@ namespace HW3.Scripts
 {
     public class CharacterVisualController : MonoBehaviour
     {
-        [SerializeField] List<Animator> animators;
+        [SerializeField] private List<Animator> animators;
 
-        private const string ANIMATION_TRIGGER_IDLE = "Idle";
-        private const string ANIMATION_TRIGGER_WALK = "Speed";
-        private const string ANIMATION_TRIGGER_OnHit = "Hit";
-        private const string ANIMATION_TRIGGER_Attack = "Attack";
-        public void PlayIdleAnimation()
-        {
-            ApplyAnimation(ANIMATION_TRIGGER_IDLE);
-        }
-        public void PlayAttackAnimation()
-        {
-            ApplyAnimation(ANIMATION_TRIGGER_Attack);
-        }
-        public void PlayWalkAnimation(float value)
-        {
-            ApplyFloatAnimation(ANIMATION_TRIGGER_WALK, value);
-        }
-        public void PlayOnHitAnimation()
-        {
-            ApplyAnimation(ANIMATION_TRIGGER_OnHit);
-        }
+        private const string AnimationTriggerIdle = "Idle";
+        private const string AnimationTriggerWalk = "Speed";
+        private const string AnimationTriggerOnHit = "Hit";
+        private const string AnimationTriggerAttack = "Attack";
+        public void PlayIdleAnimation() => ApplyAnimation(AnimationTriggerIdle);
+
+        public void PlayAttackAnimation() => ApplyAnimation(AnimationTriggerAttack);
+
+        public void PlayWalkAnimation(float value) => ApplyFloatAnimation(AnimationTriggerWalk, value);
+
+        public void PlayOnHitAnimation() => ApplyAnimation(AnimationTriggerOnHit);
+
         private void ApplyAnimation(string animationTriggerName)
         {
             foreach (Animator animator in animators)
@@ -38,7 +30,7 @@ namespace HW3.Scripts
             }
         }
 
-        private void ApplyFloatAnimation(string animationTriggerFloatName,float value)
+        private void ApplyFloatAnimation(string animationTriggerFloatName, float value)
         {
             foreach (Animator animator in animators)
             {
@@ -49,7 +41,7 @@ namespace HW3.Scripts
             }
         }
 
-
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (animators == null || animators.Count == 0)
@@ -57,5 +49,6 @@ namespace HW3.Scripts
                 animators = new List<Animator>(GetComponentsInChildren<Animator>());
             }
         }
+#endif
     }
 }

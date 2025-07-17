@@ -6,9 +6,9 @@ namespace HW3.Scripts
 {
     public class CharacterEvents : NetworkBehaviour
     {
-        [SerializeField] CharacterInput characterInput;
-        [SerializeField] CharacterVisualController characterVisualController;
-        [SerializeField] CharacterHealth characterHealth;
+        [SerializeField] private CharacterInput characterInput;
+        [SerializeField] private CharacterVisualController characterVisualController;
+        [SerializeField] private CharacterHealth characterHealth;
 
         public override void Spawned()
         {
