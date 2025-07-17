@@ -61,19 +61,23 @@ namespace HW3.Scripts.Testing
                 PlayerCount = maxPlayers,
                 CustomLobbyName = "TestLobby",
             });
-            
-            await CreatePlayerDataObject();
+
+            CreateOrGetPlayerDataObject();
         }
 
-        private async Task CreatePlayerDataObject()
+        private PlayerData CreateOrGetPlayerDataObject()
         {
-            var playerDataObject = await sessionRunner.SpawnAsync(playerDataPrefab);
+            if (sessionRunner.TryGetPlayerObject(sessionRunner.LocalPlayer, out var playerDataObject))
+                return playerDataObject.GetComponent<PlayerData>();
+            
+            playerDataObject = sessionRunner.Spawn(playerDataPrefab);
             sessionRunner.SetPlayerObject(sessionRunner.LocalPlayer, playerDataObject);
         
             var playerData = playerDataObject.GetComponent<PlayerData>();
             playerData.Nickname = SillyId.GenerateGamertag();
             
             Debug.Log($"Registered current player as \"{playerData.Nickname}\"");
+            return playerData;
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
@@ -98,6 +102,7 @@ namespace HW3.Scripts.Testing
             // Load scene when all players have joined (only master client does this)
             if (runner.SessionInfo.PlayerCount == maxPlayers && runner.IsSharedModeMasterClient && runner.IsSceneAuthority)
             {
+                CreateOrGetPlayerDataObject();
                 runner.LoadScene("GameScene");
             }
         }
