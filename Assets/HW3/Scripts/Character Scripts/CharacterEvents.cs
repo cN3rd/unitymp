@@ -16,6 +16,7 @@ namespace HW3.Scripts
                 return;
 
             characterInput.OnMove += characterVisualController.PlayWalkAnimation;
+            characterInput.OnAttack += characterVisualController.PlayAttackAnimation;
             characterHealth.OnTakingDamage += characterVisualController.PlayOnHitAnimation;
         }
 
@@ -26,6 +27,7 @@ namespace HW3.Scripts
 
             characterInput.OnMove -= characterVisualController.PlayWalkAnimation;
             characterHealth.OnTakingDamage -= characterVisualController.PlayOnHitAnimation;
+            characterInput.OnAttack -= characterVisualController.PlayAttackAnimation;
         }
     }
 }
