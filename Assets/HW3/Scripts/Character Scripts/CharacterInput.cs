@@ -11,7 +11,7 @@ namespace HW3.Scripts
         private InputSystemActions _inputActions;
         
         public event Action<NetworkObject> OnAttack;
-        public event UnityAction OnMove;
+        public event UnityAction<float> OnMove;
         public Vector2 Direction { get; private set; }
         
         private void Start()
@@ -37,13 +37,15 @@ namespace HW3.Scripts
         {
             Debug.Log("Movement Canceled");
             Direction = Vector2.zero;
+            OnMove?.Invoke(Direction.magnitude); //Direction.magnitude - Use this for animation blending
         }
 
         private void OnMovePerformed(InputAction.CallbackContext obj)
         {
             Debug.Log("Movement Performed");
             Direction = obj.ReadValue<Vector2>();
-            OnMove?.Invoke();
+            Debug.Log($"Movement Performed with speed: {Direction.magnitude}");
+            OnMove?.Invoke(Direction.magnitude); //Direction.magnitude - Use this for animation blending
         }
     }
 }

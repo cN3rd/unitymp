@@ -8,16 +8,16 @@ namespace HW3.Scripts
         [SerializeField] List<Animator> animators;
 
         private const string ANIMATION_TRIGGER_IDLE = "Idle";
-        private const string ANIMATION_TRIGGER_WALK = "Walk";
+        private const string ANIMATION_TRIGGER_WALK = "Speed";
         private const string ANIMATION_TRIGGER_OnHit = "Hit";
         public void PlayIdleAnimation()
         {
             ApplyAnimation(ANIMATION_TRIGGER_IDLE);
         }
 
-        public void PlayWalkAnimation()
+        public void PlayWalkAnimation(float value)
         {
-            ApplyAnimation(ANIMATION_TRIGGER_WALK);
+            ApplyFloatAnimation(ANIMATION_TRIGGER_WALK, value);
         }
         public void PlayOnHitAnimation()
         {
@@ -33,6 +33,18 @@ namespace HW3.Scripts
                 animator.SetTrigger(animationTriggerName);
             }
         }
+
+        private void ApplyFloatAnimation(string animationTriggerFloatName,float value)
+        {
+            foreach (Animator animator in animators)
+            {
+                if (!animator.runtimeAnimatorController)
+                    return;
+
+                animator.SetFloat(animationTriggerFloatName, value);
+            }
+        }
+
 
         private void OnValidate()
         {

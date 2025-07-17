@@ -23,6 +23,7 @@ namespace HW3.Scripts
                 CurrentHealth = maxHealth;
         }
 
+        //[ContextMenu()]
         [Rpc]
         public void TakeDamageRPC(int damage) => TakeDamage(damage);
 
