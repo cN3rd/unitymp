@@ -9,10 +9,12 @@ namespace HW3.Scripts
     {
         public event UnityAction OnTakingDamage;
         [SerializeField] private int maxHealth = 100;
+        [SerializeField] Vector3 heightOffset;
 
         [Networked]
         [OnChangedRender(nameof(OnHealthValueChanged))]
         public int CurrentHealth { get; set; } = 1;
+
 
         public event Action<float> OnHealthChanged;
         public event Action OnDeath;
@@ -23,9 +25,27 @@ namespace HW3.Scripts
                 CurrentHealth = maxHealth;
         }
 
-        //[ContextMenu()]
+        const string projectileTag = "Projectile";
+        private const float hitRadius = 1f;
+        private Collider[] hitColliders = new Collider[10];
+
         [Rpc]
-        public void TakeDamageRPC(int damage) => TakeDamage(damage);
+        public void TakeDamageRPC(int damage)
+        {
+            int hits = Physics.OverlapSphereNonAlloc(transform.position + heightOffset, hitRadius, hitColliders);
+            bool validBullet = false;
+            
+            for (int i = 0; i < hits; i++)
+            {
+                if (!hitColliders[i]) continue;
+                Debug.Log(hitColliders[i]);
+                if (!hitColliders[i].CompareTag(projectileTag)) continue;
+                validBullet = true;
+            }
+
+            if (!validBullet) return;
+            TakeDamage(damage);
+        }
 
         private void TakeDamage(int damage)
         {
@@ -44,5 +64,18 @@ namespace HW3.Scripts
             float fraction = CurrentHealth / (float)maxHealth;
             OnHealthChanged?.Invoke(fraction);
         }
+
+        #if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawWireSphere(transform.position + heightOffset, hitRadius);
+        }
+
+        private void OnValidate()
+        {
+            heightOffset = GetComponent<CapsuleCollider>().center;
+        }
+
+#endif
     }
 }

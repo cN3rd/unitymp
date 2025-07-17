@@ -35,19 +35,23 @@ namespace HW3.Scripts
 
         private void OnTriggerEnter(Collider other)
         {
-            Debug.Log($"other: {other}");
             if (!other.CompareTag(PlayerTag)) return;
-
-            var characterHealth = other.GetComponent<CharacterHealth>();
-            var characterTransform = other.transform;
-            var hitfx = Instantiate(hitFxPrefab, characterTransform.position, characterTransform.rotation);
-            // Destroy(hitfx, 5f);
+            if (!HasStateAuthority) return;
             
-            if (HasStateAuthority && !characterHealth.Object.HasStateAuthority)
-            {
-                characterHealth.TakeDamageRPC(10);
-                Runner.Despawn(Object);
-            }
+            SpawnHitEffectRPC(other.transform.position, Quaternion.identity);
+        
+            var characterHealth = other.GetComponent<CharacterHealth>();
+            if (characterHealth.Object.HasStateAuthority) return;
+            
+            characterHealth.TakeDamageRPC(10);
+            LifetimeTimer = TickTimer.CreateFromSeconds(Runner, 0.1f);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void SpawnHitEffectRPC(Vector3 position, Quaternion rotation)
+        {
+            var hitfx = Instantiate(hitFxPrefab, position, rotation);
+            Destroy(hitfx, 5);
         }
     }
 }

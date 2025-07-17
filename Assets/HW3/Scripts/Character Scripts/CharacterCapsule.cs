@@ -5,11 +5,15 @@ namespace HW3.Scripts
 {
     public class CharacterCapsule : NetworkBehaviour
     {
-        [SerializeField] private MeshRenderer meshRenderer; // May need to be a list for setting all children colors
-
+        [SerializeField] private MeshRenderer meshRenderer;
+        
         [Networked]
         [OnChangedRender(nameof(OnColorChanged))]
         public Color Color { get; set; }
+        
+        // other things
+        public const string PlayerTag = "Player";
+        public GameObject hitFxPrefab;
 
 #if UNITY_EDITOR
         private void OnValidate()

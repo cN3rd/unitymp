@@ -483,8 +483,8 @@ MonoBehaviour:
   - {fileID: 2694867271307864192}
   - {fileID: 764958807573920725}
   - {fileID: 571531975472989750}
-  - {fileID: 1624090319746224404}
-  - {fileID: 6942009818847613217}
+  - {fileID: 3462523150759970562}
+  - {fileID: 8873152815912600058}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &7420828596841058938
 MonoBehaviour:
@@ -529,6 +529,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   meshRenderer: {fileID: 6833894488218917761}
   _Color: {r: 0, g: 0, b: 0, a: 0}
+  hitFxPrefab: {fileID: 6674593902739718622, guid: 8667df9ce4709574aa8faa09e88291d3, type: 3}
 --- !u!114 &9220319513829177199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,7 +607,7 @@ CapsuleCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
@@ -888,27 +889,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Right Hand
       objectReference: {fileID: 0}
+    - target: {fileID: 4654706333127945875, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 56f99c19552cf7f4784df01351f412f5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1301456242231590155, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1624090319746224404}
+      addedObject: {fileID: 3462523150759970562}
   m_SourcePrefab: {fileID: 100100000, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
 --- !u!1 &1397485029816353120 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1301456242231590155, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
   m_PrefabInstance: {fileID: 102297137761287275}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1624090319746224404
+--- !u!114 &3462523150759970562
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1397485029816353120}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
@@ -987,7 +992,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1301456242231590155, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6942009818847613217}
+      addedObject: {fileID: 8873152815912600058}
   m_SourcePrefab: {fileID: 100100000, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
 --- !u!4 &1465748239992844435 stripped
 Transform:
@@ -999,14 +1004,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1301456242231590155, guid: ffa71c9ce13eccf4cb30492fdfc87a7b, type: 3}
   m_PrefabInstance: {fileID: 694652707858781951}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6942009818847613217
+--- !u!114 &8873152815912600058
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1994062724048497652}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
@@ -1104,11 +1109,11 @@ MonoBehaviour:
   m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator: {fileID: 3539558482626334023}
+  Animator: {fileID: 2482488326000267633}
   ApplyTiming: 2
   SyncSettings: 79
   StateHashes: 000000007d1a35585eaa36fe13a2de07d1d01fa5
-  TriggerHashes: 00000000a1609f62
+  TriggerHashes: 00000000a1609f620d286c40
   TotalWords: 2
 --- !u!4 &5399924034164437523 stripped
 Transform:
@@ -1201,7 +1206,7 @@ MonoBehaviour:
   ApplyTiming: 2
   SyncSettings: 79
   StateHashes: 000000007d1a35585eaa36fe13a2de07d1d01fa5
-  TriggerHashes: 00000000a1609f62
+  TriggerHashes: 00000000a1609f620d286c40
   TotalWords: 2
 --- !u!4 &6457310953214193189 stripped
 Transform:
