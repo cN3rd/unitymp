@@ -70,13 +70,13 @@ namespace HW3.Scripts
             if (_takenCharactersColor.Add(color))
             {
                 // Approved - Pass the actual requesting player as parameter
-                Debug.Log($"Character {color} approved for player {info.Source}");
+                //Debug.Log($"Character {color} approved for player {info.Source}");
                 RPC_CharacterApproved(info.Source, color, spawnPosition);
             }
             else
             {
                 // Denied - color is already taken
-                Debug.Log($"Character {color} denied - already taken");
+                //Debug.Log($"Character {color} denied - already taken");
                 RPC_CharacterDenied(info.Source);
             }
         }

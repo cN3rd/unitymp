@@ -17,7 +17,7 @@ namespace HW3.Scripts
         }
         public void PlayAttackAnimation()
         {
-            ApplyAnimation(ANIMATION_TRIGGER_IDLE);
+            ApplyAnimation(ANIMATION_TRIGGER_Attack);
         }
         public void PlayWalkAnimation(float value)
         {
