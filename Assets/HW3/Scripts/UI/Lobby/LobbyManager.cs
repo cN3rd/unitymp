@@ -43,6 +43,7 @@ namespace HW3.Scripts
             lobbyManagerUI.OnNewRoomButtonClicked += createRoomPopup.ShowPopup;
             lobbyManagerUI.OnLobbyDropdownValueChanged += _ => RefreshUI();
             lobbyManagerUI.OnRoomVisibleValueChange += ChangeRoomVisibility;
+            lobbyManagerUI.OnError += errorPopup.ShowError;
             createRoomPopup.OnCreateRoom += CreateRoom;
         }
 

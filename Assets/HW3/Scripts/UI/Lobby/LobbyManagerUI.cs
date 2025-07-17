@@ -3,6 +3,7 @@ using Fusion;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HW3.Scripts
@@ -15,6 +16,7 @@ namespace HW3.Scripts
         public event UnityAction OnNewRoomButtonClicked;
         public event UnityAction<int> OnLobbyDropdownValueChanged;
         public event UnityAction<bool> OnRoomVisibleValueChange;
+        public event UnityAction<string> OnError;
 
         [Header("Top view GUI")]
         [SerializeField] private TMP_InputField playerNameInputField;
@@ -121,13 +123,13 @@ namespace HW3.Scripts
             // For current session, always show regardless of session.IsVisible from the list
             // For other sessions, only show if visible
             if (!isCurrentSession && !session.IsVisible) return;
-            
-            GameObject sessionObject = Instantiate(listItemTemplate, listPanel);
-            sessionObject.SetActive(true);
 
-            TextMeshProUGUI buttonText = sessionObject.GetComponentInChildren<TextMeshProUGUI>();
-            Image imageComponent = sessionObject.GetComponent<Image>();
-            Button button = sessionObject.GetComponent<Button>();
+            GameObject buttonObject = Instantiate(listItemTemplate, listPanel);
+            buttonObject.SetActive(true);
+
+            TextMeshProUGUI buttonText = buttonObject.GetComponentInChildren<TextMeshProUGUI>();
+            Image imageComponent = buttonObject.GetComponent<Image>();
+            Button button = buttonObject.GetComponent<Button>();
 
             buttonText.text = $"{session.Name} ({session.PlayerCount}/{session.MaxPlayers})";
 
@@ -146,7 +148,22 @@ namespace HW3.Scripts
                 button.interactable = false;
             }
 
-            _roomButtons.Add(sessionObject);
+            EventTrigger eventHandler = buttonObject.AddComponent<EventTrigger>();
+            EventTrigger.Entry entry = new() { eventID = EventTriggerType.Submit };
+            entry.callback.AddListener(_ => OnSessionButtonClick(button.interactable, session));
+            eventHandler.triggers.Add(entry);
+
+            _roomButtons.Add(buttonObject);
+        }
+
+        private void OnSessionButtonClick(bool interactable, SessionInfo session)
+        {
+            if (interactable) return;
+            
+            if(!session.IsOpen)
+                OnError?.Invoke("You can't join a room whose game already started");
+            else if (session.PlayerCount == session.MaxPlayers)
+                OnError?.Invoke("You can't join a full room");
         }
     }
 }
