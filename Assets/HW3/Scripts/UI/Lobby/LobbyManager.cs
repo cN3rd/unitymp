@@ -205,7 +205,11 @@ namespace HW3.Scripts
         private void HandleSessionPlayerJoined(PlayerRef player)
         {
             if (_sessionRunner.SessionInfo.MaxPlayers == _sessionRunner.SessionInfo.PlayerCount &&
-                _sessionRunner.IsSceneAuthority) _sessionRunner.LoadScene("GameScene");
+                _sessionRunner.IsSceneAuthority)
+            {
+                _sessionRunner.SessionInfo.IsOpen = false;
+                _sessionRunner.LoadScene("GameScene");
+            }
         }
 
         private void HandleSessionPlayerLeft(PlayerRef player)
