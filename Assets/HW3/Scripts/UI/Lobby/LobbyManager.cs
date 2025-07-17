@@ -42,7 +42,17 @@ namespace HW3.Scripts
             lobbyManagerUI.OnJoinLobbyClicked += JoinLobby;
             lobbyManagerUI.OnNewRoomButtonClicked += createRoomPopup.ShowPopup;
             lobbyManagerUI.OnLobbyDropdownValueChanged += _ => RefreshUI();
+            lobbyManagerUI.OnRoomVisibleValueChange += ChangeRoomVisibility;
             createRoomPopup.OnCreateRoom += CreateRoom;
+        }
+
+        private void ChangeRoomVisibility(bool newVisibility)
+        {
+            if (!_sessionRunner) return;
+            if (!_sessionRunner.SessionInfo) return;
+            if (!_sessionRunner.SessionInfo.IsValid) return;
+
+            _sessionRunner.SessionInfo.IsVisible = newVisibility;
         }
 
         private void Start()
@@ -125,16 +135,17 @@ namespace HW3.Scripts
             try
             {
                 if (_sessionRunner == null) return;
-
                 await _sessionRunner.Shutdown(shutdownReason: ShutdownReason.Ok);
-                CleanupSessionConnection();
-                RefreshUI();
             }
             catch (Exception ex)
             {
                 errorPopup.ShowError(ex.ToString());
+            }
+            finally
+            {
                 CleanupSessionConnection();
                 RefreshUI();
+                _lobbyState = LobbyState.InLobby;
             }
         }
 
