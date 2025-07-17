@@ -1,11 +1,13 @@
-using System;
 using Fusion;
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HW3.Scripts
 {
     public class CharacterHealth : NetworkBehaviour
     {
+        public event UnityAction OnTakingDamage;
         [SerializeField] private int maxHealth = 100;
 
         [Networked]
@@ -27,7 +29,10 @@ namespace HW3.Scripts
         private void TakeDamage(int damage)
         {
             if (HasStateAuthority)
+            {
                 CurrentHealth -= damage;
+                OnTakingDamage?.Invoke();
+            }
 
             if (CurrentHealth <= 0)
                 OnDeath?.Invoke();

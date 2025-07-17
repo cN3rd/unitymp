@@ -5,7 +5,7 @@ namespace HW3.Scripts
 {
     public class CharacterCapsule : NetworkBehaviour
     {
-        [SerializeField] private MeshRenderer meshRenderer;
+        [SerializeField] private MeshRenderer meshRenderer; // May need to be a list for setting all children colors
 
         [Networked]
         [OnChangedRender(nameof(OnColorChanged))]

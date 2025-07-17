@@ -1,6 +1,7 @@
 using System;
 using Fusion;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 namespace HW3.Scripts
@@ -10,6 +11,7 @@ namespace HW3.Scripts
         private InputSystemActions _inputActions;
         
         public event Action<NetworkObject> OnAttack;
+        public event UnityAction OnMove;
         public Vector2 Direction { get; private set; }
         
         private void Start()
@@ -41,6 +43,7 @@ namespace HW3.Scripts
         {
             Debug.Log("Movement Performed");
             Direction = obj.ReadValue<Vector2>();
+            OnMove?.Invoke();
         }
     }
 }
