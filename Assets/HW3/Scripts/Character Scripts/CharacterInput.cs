@@ -10,7 +10,7 @@ namespace HW3.Scripts
     {    
         private InputSystemActions _inputActions;
         
-        public event Action OnAttack; // 
+        public event Action OnAttack; //public event Action<NetworkObject> OnAttack;
         public event UnityAction<float> OnMove;
         public Vector2 Direction { get; private set; }
         

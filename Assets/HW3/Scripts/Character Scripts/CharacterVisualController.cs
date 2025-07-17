@@ -10,11 +10,15 @@ namespace HW3.Scripts
         private const string ANIMATION_TRIGGER_IDLE = "Idle";
         private const string ANIMATION_TRIGGER_WALK = "Speed";
         private const string ANIMATION_TRIGGER_OnHit = "Hit";
+        private const string ANIMATION_TRIGGER_Attack = "Attack";
         public void PlayIdleAnimation()
         {
             ApplyAnimation(ANIMATION_TRIGGER_IDLE);
         }
-
+        public void PlayAttackAnimation()
+        {
+            ApplyAnimation(ANIMATION_TRIGGER_IDLE);
+        }
         public void PlayWalkAnimation(float value)
         {
             ApplyFloatAnimation(ANIMATION_TRIGGER_WALK, value);
