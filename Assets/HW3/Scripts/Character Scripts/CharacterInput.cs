@@ -10,7 +10,7 @@ namespace HW3.Scripts
     {    
         private InputSystemActions _inputActions;
         
-        public event Action<NetworkObject> OnAttack;
+        public event Action OnAttack; // 
         public event UnityAction<float> OnMove;
         public Vector2 Direction { get; private set; }
         
@@ -30,7 +30,7 @@ namespace HW3.Scripts
         private void OnAttackPerformed(InputAction.CallbackContext obj)
         {
             Debug.Log("Attack!");
-            OnAttack?.Invoke(Object);
+            OnAttack?.Invoke();
         }
 
         private void OnMoveCanceled(InputAction.CallbackContext context)
