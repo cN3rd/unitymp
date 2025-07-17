@@ -12,7 +12,7 @@ namespace HW3.Scripts
 
         private void Awake() => input.OnAttack += DoAttack;
 
-        private void DoAttack(NetworkObject _) => Runner.Spawn(projectile,
+        private void DoAttack() => Runner.Spawn(projectile,
             projectileSpawnPoint.position, projectileSpawnPoint.rotation);
     }
 }
