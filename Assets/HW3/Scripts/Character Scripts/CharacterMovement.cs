@@ -9,15 +9,24 @@ namespace HW3.Scripts
     {
         [SerializeField] private float speed = 5f;
         [SerializeField] private CharacterInput input;
-        
+
         public override void FixedUpdateNetwork()
         {
             if (!HasInputAuthority)
                 return;
 
-            Vector3 actualDirection = transform.forward * input.Direction.y + transform.right * input.Direction.x;
-            Vector3 movement = actualDirection * (speed * Runner.DeltaTime);
-            transform.Translate(movement);
+            Vector3 inputDir = new Vector3(input.Direction.x, 0, input.Direction.y);
+
+            if (inputDir.sqrMagnitude > 0.01f)
+            {
+                // Move
+                Vector3 move = inputDir.normalized * (speed * Runner.DeltaTime);
+                transform.Translate(move, Space.World);
+
+                // Rotate
+                Quaternion targetRotation = Quaternion.LookRotation(inputDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10 * Runner.DeltaTime);
+            }
         }
     }
 }
